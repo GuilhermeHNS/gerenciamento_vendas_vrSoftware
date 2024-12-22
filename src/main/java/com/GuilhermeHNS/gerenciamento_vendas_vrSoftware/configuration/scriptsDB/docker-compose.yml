@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ./baseGerenciamentoVendas.sql:/docker-entrypoint-initdb.d/baseGerenciamentoVendas.sql
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234"
+    ports:
+      - "5433:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "8080:80"

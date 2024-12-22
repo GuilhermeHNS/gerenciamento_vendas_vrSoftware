@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -138,6 +139,15 @@ public class ClienteServiceTest {
         List<Cliente> clientes = clienteService.getAllClientes();
         assertNotNull(clientes);
         assertIterableEquals(clienteList, clientes);
+        Mockito.verify(clienteDAO, times(1)).getAllClientes();
+    }
+
+    @Test
+    public void deveRetornarListaDeClientesVazia() throws SQLException {
+        Mockito.when(clienteDAO.getAllClientes()).thenReturn(new ArrayList<>());
+        List<Cliente> clientes = clienteService.getAllClientes();
+        assertNotNull(clientes);
+        assertEquals(0, clientes.size());
         Mockito.verify(clienteDAO, times(1)).getAllClientes();
     }
 

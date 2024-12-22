@@ -1,13 +1,13 @@
 package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl;
 
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.ClienteDAO;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.ClienteRequest;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterClienteRequest;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpdateClienteRequest;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 public class ClienteServiceImpl implements ClienteService {
@@ -19,32 +19,61 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
-    public void createCliente(RegisterClienteRequest request) {
-        try{
-            verificaDadosParaPersistenciaDeCliente(request);
+    public void createCliente(RegisterUpdateClienteRequest request) {
+        verificaDadosParaPersistenciaDeCliente(request);
+        try {
             Optional<Cliente> existingCliente = clienteDAO.getClienteByCpfCnpj(request.cpfCnpj());
-            if(existingCliente.isPresent()) {
+            if (existingCliente.isPresent()) {
                 throw new RuntimeException("Cliente already exist!");
             }
             Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), request.valorLimiteCredito(), request.diaFechamentoFatura());
             clienteDAO.createCliente(cliente);
         } catch (SQLException e) {
-            throw new RuntimeException("Error: " + e.getMessage() ,e);
+            throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
 
     @Override
-    public Cliente getClienteByDoc(ClienteRequest request) {
+    public Cliente getClienteByDoc(String cpfCnpj) {
         try {
-            Optional<Cliente> cliente = clienteDAO.getClienteByCpfCnpj(request.cpfCnpj());
-            return  cliente.orElseThrow(() -> new RuntimeException("Cliente not found!"));
+            Optional<Cliente> cliente = clienteDAO.getClienteByCpfCnpj(cpfCnpj);
+            return cliente.orElseThrow(() -> new RuntimeException("Cliente not found!"));
         } catch (SQLException e) {
-            throw new RuntimeException("Error: " + e.getMessage() ,e);
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void updateCliente(RegisterUpdateClienteRequest request) {
+        verificaDadosParaPersistenciaDeCliente(request);
+        try {
+            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), request.valorLimiteCredito(), request.diaFechamentoFatura());
+            clienteDAO.updateCliente(cliente);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteCliente(String cpfCnpj) {
+        try {
+            clienteDAO.deleteCliente(cpfCnpj);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Cliente> getAllClientes() {
+        try {
+            return clienteDAO.getAllClientes();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
 
 
-    private void verificaDadosParaPersistenciaDeCliente(RegisterClienteRequest request) {
+    private void verificaDadosParaPersistenciaDeCliente(RegisterUpdateClienteRequest request) {
         if (request.name() == null || request.name().isEmpty()) {
             throw new IllegalArgumentException("Nome do cliente não pode ser vazio.");
         }

@@ -65,15 +65,19 @@ public class ClientesForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String cpfCnpj = fieldConsulta.getText();
-                Cliente cliente = clienteController.consultaCliente(cpfCnpj);
-                DefaultTableModel dados = (DefaultTableModel) tableClientes.getModel();
-                dados.setNumRows(0);
-                dados.addRow(new Object[]{
-                        cliente.nome(),
-                        cliente.cpfCnpj(),
-                        cliente.limiteCredito(),
-                        cliente.diaFechamentoFatura(),
-                });
+                if(cpfCnpj.isBlank()) {
+                    listaClientes();
+                }else{
+                    Cliente cliente = clienteController.consultaCliente(cpfCnpj);
+                    DefaultTableModel dados = (DefaultTableModel) tableClientes.getModel();
+                    dados.setNumRows(0);
+                    dados.addRow(new Object[]{
+                            cliente.nome(),
+                            cliente.cpfCnpj(),
+                            cliente.limiteCredito(),
+                            cliente.diaFechamentoFatura(),
+                    });
+                }
             }
         });
         this.addWindowListener(new WindowAdapter() {

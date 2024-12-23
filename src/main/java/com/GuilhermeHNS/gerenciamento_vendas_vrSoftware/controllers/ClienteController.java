@@ -4,6 +4,8 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpd
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 
+import java.util.List;
+
 public class ClienteController {
     private final ClienteService clienteService;
 
@@ -19,6 +21,9 @@ public class ClienteController {
         return clienteService.getClienteByDoc(cpfCnpj);
     }
 
+    public List<Cliente> listaTodosOsClientes() {
+        return clienteService.getAllClientes();
+    }
     public void atualizaCliente(RegisterUpdateClienteRequest request) {
         clienteService.updateCliente(request);
     }

@@ -114,7 +114,7 @@ public class ClienteDAOImpl implements ClienteDAO {
         String sql = "SELECT";
         sql += "\n         cliente_id AS CODIGO,";
         sql += "\n         cliente_name AS NAME,";
-        sql += "\n         cliente_cpfcnpj AS CPFCPNJ,";
+        sql += "\n         cliente_cpfcnpj AS CPFCNPJ,";
         sql += "\n         cliente_limitecompra AS LIMITECREDITO,";
         sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA";
         sql += "\n FROM cliente";

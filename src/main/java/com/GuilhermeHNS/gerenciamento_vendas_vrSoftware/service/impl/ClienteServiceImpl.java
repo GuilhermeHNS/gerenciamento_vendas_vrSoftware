@@ -2,9 +2,12 @@ package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl;
 
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.ClienteDAO;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpdateClienteRequest;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ClienteAlreadyExistException;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ClienteValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 
+import javax.swing.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
@@ -20,15 +23,17 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public void createCliente(RegisterUpdateClienteRequest request) {
-        verificaDadosParaPersistenciaDeCliente(request);
         try {
+            verificaDadosParaPersistenciaDeCliente(request);
             Optional<Cliente> existingCliente = clienteDAO.getClienteByCpfCnpj(request.cpfCnpj());
             if (existingCliente.isPresent()) {
-                throw new RuntimeException("Cliente already exist!");
+                exibeError("Cliente já existente!");
+                throw new ClienteAlreadyExistException();
             }
-            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), request.valorLimiteCredito(), request.diaFechamentoFatura());
+            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
             clienteDAO.createCliente(cliente);
         } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -39,6 +44,7 @@ public class ClienteServiceImpl implements ClienteService {
             Optional<Cliente> cliente = clienteDAO.getClienteByCpfCnpj(cpfCnpj);
             return cliente.orElseThrow(() -> new RuntimeException("Cliente not found!"));
         } catch (SQLException e) {
+            exibeError("Não foi possível obter o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -47,9 +53,10 @@ public class ClienteServiceImpl implements ClienteService {
     public void updateCliente(RegisterUpdateClienteRequest request) {
         verificaDadosParaPersistenciaDeCliente(request);
         try {
-            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), request.valorLimiteCredito(), request.diaFechamentoFatura());
+            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
             clienteDAO.updateCliente(cliente);
         } catch (SQLException e) {
+            exibeError("Não foi possível atualizar o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -59,6 +66,7 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             clienteDAO.deleteCliente(cpfCnpj);
         } catch (SQLException e) {
+            exibeError("Não foi possível deleter o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -68,23 +76,28 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             return clienteDAO.getAllClientes();
         } catch (SQLException e) {
+            exibeError("Não foi possível efetuar a busca dos clientes!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
 
-
     private void verificaDadosParaPersistenciaDeCliente(RegisterUpdateClienteRequest request) {
-        if (request.name() == null || request.name().isEmpty()) {
-            throw new IllegalArgumentException("Nome do cliente não pode ser vazio.");
+        if (request.name() == null || request.name().isBlank()) {
+            throw new ClienteValidationException("Nome do cliente não pode ser vazio.");
         }
-        if (request.cpfCnpj() == null || request.cpfCnpj().isEmpty()) {
-            throw new IllegalArgumentException("CPF/CNPJ não pode ser vazio.");
+        if (request.cpfCnpj() == null || request.cpfCnpj().isBlank()) {
+            throw new ClienteValidationException("CPF/CNPJ não pode ser vazio.");
         }
-        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O limite de crédito deve ser maior que zero.");
+        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().isBlank() ||new BigDecimal(request.valorLimiteCredito()).compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ClienteValidationException("O limite de crédito deve ser maior que zero.");
         }
-        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura() < 1 || request.diaFechamentoFatura() > 31) {
-            throw new IllegalArgumentException("Dia de fechamento da fatura deve ser entre 1 e 31.");
+        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() ||Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
+            throw new ClienteValidationException("Dia de fechamento da fatura deve ser entre 1 e 31.");
         }
     }
+
+    private void exibeError(String message) {
+        JOptionPane.showMessageDialog(null, message);
+    }
+
 }

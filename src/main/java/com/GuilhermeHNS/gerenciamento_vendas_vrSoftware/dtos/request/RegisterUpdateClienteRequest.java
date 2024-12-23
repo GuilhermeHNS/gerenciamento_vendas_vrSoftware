@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public record RegisterUpdateClienteRequest(
         String name,
         String cpfCnpj,
-        BigDecimal valorLimiteCredito,
-        Integer diaFechamentoFatura
+        String valorLimiteCredito,
+        String diaFechamentoFatura
 ) {
 }

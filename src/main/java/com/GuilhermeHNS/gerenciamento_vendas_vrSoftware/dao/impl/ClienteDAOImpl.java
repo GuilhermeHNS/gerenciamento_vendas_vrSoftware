@@ -36,11 +36,11 @@ public class ClienteDAOImpl implements ClienteDAO {
         String sql = "SELECT";
         sql += "\n         cliente_id AS CODIGO,";
         sql += "\n         cliente_name AS NAME,";
-        sql += "\n         cliente_cpfcnpj AS CPFCPNJ,";
+        sql += "\n         cliente_cpfcnpj AS CPFCNPJ,";
         sql += "\n         cliente_limitecompra AS LIMITECREDITO,";
         sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA";
         sql += "\n FROM cliente";
-        sql += "\n WHERE CPFCNPJ = ?";
+        sql += "\n WHERE cliente_cpfcnpj = ?";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setString(1, cpfCnpj);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -56,6 +56,7 @@ public class ClienteDAOImpl implements ClienteDAO {
                 );
             }
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new SQLException("An error occurred while searching for the cliente.");
         }
 
@@ -89,7 +90,7 @@ public class ClienteDAOImpl implements ClienteDAO {
 
     @Override
     public void deleteCliente(String cpfCnpj) throws SQLException {
-        String sql = "DELETE FROM cliente WHERE cpfCnpj = ?";
+        String sql = "DELETE FROM cliente WHERE cliente_cpfcnpj = ?";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setString(1, cpfCnpj);
         } catch (SQLException e) {

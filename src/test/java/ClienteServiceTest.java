@@ -1,5 +1,6 @@
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.ClienteDAO;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpdateClienteRequest;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ClienteValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl.ClienteServiceImpl;
@@ -31,7 +32,7 @@ public class ClienteServiceTest {
 
     @Test
     public void deveRegistrarUmCliente() throws SQLException {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "500.00", "10");
 
         Mockito.doNothing().when(clienteDAO).createCliente(Mockito.any(Cliente.class));
 
@@ -42,33 +43,33 @@ public class ClienteServiceTest {
 
     @Test
     public void deveNegarCadastroSemNome() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", "500.00", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.createCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("Nome do cliente não pode ser vazio.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarCadastroSemDocumento() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.createCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarCadastroComLimiteZero() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", BigDecimal.ZERO, 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.createCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarCadastroComDiaDeFechamentoInvalido() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", new BigDecimal(500.00), 32);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00","500.00", "32");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.createCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("Dia de fechamento da fatura deve ser entre 1 e 31.", thrown.getMessage());
     }
 
@@ -91,7 +92,7 @@ public class ClienteServiceTest {
 
     @Test
     public void deveAtualizarClienteComDadosValidos() throws SQLException {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "500.00", "10");
         Mockito.doNothing().when(clienteDAO).updateCliente(Mockito.any(Cliente.class));
         clienteService.updateCliente(request);
         verify(clienteDAO, times(1)).updateCliente(Mockito.any(Cliente.class));
@@ -99,33 +100,33 @@ public class ClienteServiceTest {
 
     @Test
     public void deveNegarUpdateSemNome() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", "500.00", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.updateCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("Nome do cliente não pode ser vazio.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarUpdateSemDocumento() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", new BigDecimal(500.00), 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.updateCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarUpdateComLimiteZero() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", BigDecimal.ZERO, 10);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "0", "10");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.updateCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
     }
 
     @Test
     public void deveNegarUpdateComDiaDeFechamentoInvalido() {
-        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", new BigDecimal(500.00), 32);
+        RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "500.00", "32");
 
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> clienteService.updateCliente(request));
+        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("Dia de fechamento da fatura deve ser entre 1 e 31.", thrown.getMessage());
     }
 

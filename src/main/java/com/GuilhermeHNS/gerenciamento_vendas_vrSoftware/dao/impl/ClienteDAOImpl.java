@@ -26,6 +26,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             pstmt.setInt(4, cliente.diaFechamentoFatura());
             pstmt.executeUpdate();
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new SQLException("An error occurred while save cliente.");
         }
     }
@@ -57,7 +58,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while searching for the cliente.");
+            throw new SQLException("An error occurred while searching for the customer.");
         }
 
     }
@@ -84,7 +85,8 @@ public class ClienteDAOImpl implements ClienteDAO {
                 throw new SQLException(e);
             }
         } catch (SQLException e) {
-            throw new SQLException("An error occurred while update cliente.");
+            e.printStackTrace();
+            throw new SQLException("An error occurred while update customer.");
         }
     }
 
@@ -92,9 +94,18 @@ public class ClienteDAOImpl implements ClienteDAO {
     public void deleteCliente(String cpfCnpj) throws SQLException {
         String sql = "DELETE FROM cliente WHERE cliente_cpfcnpj = ?";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
-            pstmt.setString(1, cpfCnpj);
+            con.setAutoCommit(false);
+            try {
+                pstmt.setString(1, cpfCnpj);
+                pstmt.executeUpdate();
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw new SQLException(e);
+            }
         } catch (SQLException e) {
-            throw new SQLException("An error occurred while delete cliente.");
+            e.printStackTrace();
+            throw new SQLException("An error occurred while delete customer.");
         }
     }
 
@@ -122,7 +133,8 @@ public class ClienteDAOImpl implements ClienteDAO {
             }
             return clientesList;
         } catch (SQLException e) {
-            throw new SQLException("An error occurred while delete cliente.");
+            e.printStackTrace();
+            throw new SQLException("An error occurred while searching all customers.");
         }
     }
 }

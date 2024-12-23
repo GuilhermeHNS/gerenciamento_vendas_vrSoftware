@@ -1,6 +1,6 @@
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.ClienteDAO;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpdateClienteRequest;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ClienteValidationException;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl.ClienteServiceImpl;
@@ -45,7 +45,7 @@ public class ClienteServiceTest {
     public void deveNegarCadastroSemNome() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", "500.00", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("Nome do cliente não pode ser vazio.", thrown.getMessage());
     }
 
@@ -53,7 +53,7 @@ public class ClienteServiceTest {
     public void deveNegarCadastroSemDocumento() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
     }
 
@@ -61,7 +61,7 @@ public class ClienteServiceTest {
     public void deveNegarCadastroComLimiteZero() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
     }
 
@@ -69,7 +69,7 @@ public class ClienteServiceTest {
     public void deveNegarCadastroComDiaDeFechamentoInvalido() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00","500.00", "32");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.createCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
         assertEquals("Dia de fechamento da fatura deve ser entre 1 e 31.", thrown.getMessage());
     }
 
@@ -102,7 +102,7 @@ public class ClienteServiceTest {
     public void deveNegarUpdateSemNome() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("", "444.444.444-00", "500.00", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("Nome do cliente não pode ser vazio.", thrown.getMessage());
     }
 
@@ -110,7 +110,7 @@ public class ClienteServiceTest {
     public void deveNegarUpdateSemDocumento() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
     }
 
@@ -118,7 +118,7 @@ public class ClienteServiceTest {
     public void deveNegarUpdateComLimiteZero() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "0", "10");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
     }
 
@@ -126,7 +126,7 @@ public class ClienteServiceTest {
     public void deveNegarUpdateComDiaDeFechamentoInvalido() {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "500.00", "32");
 
-        ClienteValidationException thrown = assertThrows(ClienteValidationException.class, () -> clienteService.updateCliente(request));
+        ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
         assertEquals("Dia de fechamento da fatura deve ser entre 1 e 31.", thrown.getMessage());
     }
 

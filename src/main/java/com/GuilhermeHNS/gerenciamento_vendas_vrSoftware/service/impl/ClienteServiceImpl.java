@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.ExibeJPanelError.exibeError;
 
@@ -91,14 +92,21 @@ public class ClienteServiceImpl implements ClienteService {
         if (request.name() == null || request.name().isBlank()) {
             throw new ValidationException("Nome do cliente não pode ser vazio.");
         }
-        if (request.cpfCnpj() == null || request.cpfCnpj().isBlank()) {
-            throw new ValidationException("CPF/CNPJ não pode ser vazio.");
+        if (request.cpfCnpj() == null || request.cpfCnpj().isBlank() || !validaCPFouCNPJ(request.cpfCnpj())) {
+            throw new ValidationException("CPF/CNPJ deve ser válido!");
         }
-        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().isBlank() || new BigDecimal(request.valorLimiteCredito()).compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("O limite de crédito deve ser maior que zero.");
+        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().isBlank() ||  !request.valorLimiteCredito().matches("\\d+") ||new BigDecimal(request.valorLimiteCredito()).compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("O limite de crédito deve ser um numero válido!");
         }
-        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() || Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
+        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() || !request.diaFechamentoFatura().matches("\\d+") ||Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
             throw new ValidationException("Dia de fechamento da fatura deve ser entre 1 e 31.");
         }
+    }
+
+    public boolean validaCPFouCNPJ(String input) {
+        String regexCPF = "^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$";
+        String regexCNPJ = "^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$";
+
+        return Pattern.matches(regexCPF, input) || Pattern.matches(regexCNPJ, input);
     }
 }

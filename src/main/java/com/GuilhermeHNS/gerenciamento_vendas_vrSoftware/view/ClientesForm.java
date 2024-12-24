@@ -225,7 +225,7 @@ public class ClientesForm extends JFrame {
     private void listaClientes() {
         DefaultTableModel dados = (DefaultTableModel) tableClientes.getModel();
         dados.setNumRows(0);
-        List<Cliente> clienteList = new ArrayList<>();
+        List<Cliente> clienteList;
         clienteList = clienteController.listaTodosOsClientes();
         clienteList.stream().forEach(cliente -> {
             dados.addRow(new Object[]{

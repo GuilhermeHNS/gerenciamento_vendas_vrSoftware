@@ -26,7 +26,7 @@ public class ProdutoServiceImpl implements ProdutoService {
     @Override
     public Produto getProdutoById(String codigo) {
         try {
-            Long idProduto = Long.getLong(codigo);
+            Long idProduto = Long.parseLong(codigo);
             Optional<Produto> produto = produtoDAO.findProdutoById(idProduto);
             return produto.orElseThrow(() -> {
                 exibeError("Produto não encontrado!");
@@ -55,7 +55,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         verificaDadosParaPersistenciaDeProduto(request.descricao(), request.preco());
         try {
             Produto produto = new Produto(
-                    Long.getLong(request.codigo()),
+                    request.codigo(),
                     request.descricao(),
                     new BigDecimal(request.preco())
             );
@@ -67,9 +67,9 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
 
     @Override
-    public void deleteProduto(String codigo) {
+    public void deleteProduto(Long codigo) {
         try {
-            produtoDAO.deleteProduto(Long.getLong(codigo));
+            produtoDAO.deleteProduto(codigo);
         } catch (SQLException e) {
             exibeError("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
@@ -80,6 +80,16 @@ public class ProdutoServiceImpl implements ProdutoService {
     public List<Produto> getAllProdutos() {
         try {
             return produtoDAO.findAll();
+        } catch (SQLException e) {
+            exibeError("Error: " + e.getMessage());
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Produto> getProdutoByDescricao(String descricao) {
+        try {
+            return produtoDAO.findProdutoByDesc(descricao);
         } catch (SQLException e) {
             exibeError("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);

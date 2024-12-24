@@ -13,8 +13,10 @@ public interface ProdutoService {
 
     void updateProduto(UpdateProdutoRequest request);
 
-    void deleteProduto(String codigo);
+    void deleteProduto(Long codigo);
 
     List<Produto> getAllProdutos();
+
+    List<Produto> getProdutoByDescricao(String descricao);
 
 }

@@ -3,18 +3,18 @@
   <grid id="27dc6" binding="panelCliente" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="705" height="300"/>
+      <xy x="20" y="20" width="583" height="329"/>
     </constraints>
     <properties>
-      <minimumSize width="300" height="300"/>
-      <preferredSize width="300" height="300"/>
+      <minimumSize width="448" height="168"/>
+      <preferredSize width="448" height="457"/>
     </properties>
     <border type="none"/>
     <children>
       <tabbedpane id="87d00" binding="tabbedCliente">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="200" height="200"/>
+            <preferred-size width="200" height="300"/>
           </grid>
         </constraints>
         <properties/>
@@ -70,14 +70,14 @@
                       </grid>
                     </constraints>
                     <properties>
-                      <toolTipText value=""/>
+                      <toolTipText value="Teste"/>
                     </properties>
                   </component>
                 </children>
               </grid>
             </children>
           </grid>
-          <grid id="3a7a7" binding="tabCadastro" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="3a7a7" binding="tabCadastro" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <tabbedpane title="Cadastro"/>
@@ -91,7 +91,7 @@
               <grid id="822b6" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="7" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -170,7 +170,7 @@
           </grid>
         </children>
       </tabbedpane>
-      <grid id="bbfff" layout-manager="GridLayoutManager" row-count="1" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="bbfff" layout-manager="GridLayoutManager" row-count="1" column-count="6" same-size-horizontally="true" same-size-vertically="true" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="2" fill="1" indent="0" use-parent-layout="false"/>

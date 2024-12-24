@@ -12,4 +12,6 @@ public interface ProdutoDAO {
     void updateProduto(Produto produto) throws SQLException;
     void deleteProduto(Long id) throws SQLException;
     List<Produto> findAll() throws SQLException;
+
+    List<Produto> findProdutoByDesc(String desc) throws SQLException;
 }

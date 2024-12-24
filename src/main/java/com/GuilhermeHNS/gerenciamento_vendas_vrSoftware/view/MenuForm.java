@@ -4,23 +4,32 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class MenuForm extends JFrame{
+public class MenuForm extends JFrame {
     private JPanel menuPanel;
     private JMenuBar JMenuBar;
     private JMenu menuCliente;
-    private JMenu menuProduto;
     private JMenu menuVendas;
     private JMenuItem menuItemCliente;
+    private JMenu produtosMenu;
+    private JMenuItem produtosMenuItem;
 
-    private ClientesForm clientesForm;
+    private final ClientesForm clientesForm;
+    private final ProdutosForm produtosForm;
 
-
-    public MenuForm(ClientesForm clientesForm) {
+    public MenuForm(ClientesForm clientesForm, ProdutosForm produtosForm) {
         this.clientesForm = clientesForm;
+        this.produtosForm = produtosForm;
         menuItemCliente.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 clientesForm.setVisible(true);
+            }
+        });
+
+        produtosMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                produtosForm.setVisible(true);
             }
         });
     }

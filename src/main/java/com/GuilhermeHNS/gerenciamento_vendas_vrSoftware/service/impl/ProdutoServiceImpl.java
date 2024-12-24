@@ -100,7 +100,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         if (descricao == null || descricao.isBlank()) {
             throw new ValidationException("A descrição do produto é obrigatória!");
         }
-        if (preco == null || preco.isBlank() || new BigDecimal(preco).compareTo(BigDecimal.ZERO) <= 0) {
+        if (preco == null || preco.isBlank() || !preco.matches("^-?\\d+(\\.\\d+)?$") ||new BigDecimal(preco).compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("O preço do produto não pode ser menor que 0!");
         }
     }

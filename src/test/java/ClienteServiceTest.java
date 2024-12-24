@@ -1,5 +1,6 @@
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.ClienteDAO;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterUpdateClienteRequest;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ClienteNotFoundException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
@@ -54,7 +55,7 @@ public class ClienteServiceTest {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
         ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
-        assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
+        assertEquals("CPF/CNPJ deve ser válido!", thrown.getMessage());
     }
 
     @Test
@@ -62,7 +63,7 @@ public class ClienteServiceTest {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "", "10");
 
         ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.createCliente(request));
-        assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
+        assertEquals("O limite de crédito deve ser um numero válido!", thrown.getMessage());
     }
 
     @Test
@@ -87,7 +88,7 @@ public class ClienteServiceTest {
     public void deveRetornarExcecaoParaClienteInexistente() throws SQLException {
         String cpfCnpj = "444.444.444-00";
         Mockito.when(clienteDAO.getClienteByCpfCnpj(cpfCnpj)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> clienteService.getClienteByDoc(cpfCnpj));
+        assertThrows(ClienteNotFoundException.class, () -> clienteService.getClienteByDoc(cpfCnpj));
     }
 
     @Test
@@ -111,7 +112,7 @@ public class ClienteServiceTest {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "", "500.00", "10");
 
         ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
-        assertEquals("CPF/CNPJ não pode ser vazio.", thrown.getMessage());
+        assertEquals("CPF/CNPJ deve ser válido!", thrown.getMessage());
     }
 
     @Test
@@ -119,7 +120,7 @@ public class ClienteServiceTest {
         RegisterUpdateClienteRequest request = new RegisterUpdateClienteRequest("Guilherme", "444.444.444-00", "0", "10");
 
         ValidationException thrown = assertThrows(ValidationException.class, () -> clienteService.updateCliente(request));
-        assertEquals("O limite de crédito deve ser maior que zero.", thrown.getMessage());
+        assertEquals("O limite de crédito deve ser um numero válido!", thrown.getMessage());
     }
 
     @Test

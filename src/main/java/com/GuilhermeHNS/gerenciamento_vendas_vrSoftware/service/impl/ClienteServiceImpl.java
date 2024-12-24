@@ -95,10 +95,10 @@ public class ClienteServiceImpl implements ClienteService {
         if (request.cpfCnpj() == null || request.cpfCnpj().isBlank() || !validaCPFouCNPJ(request.cpfCnpj())) {
             throw new ValidationException("CPF/CNPJ deve ser válido!");
         }
-        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().isBlank() ||  !request.valorLimiteCredito().matches("\\d+") ||new BigDecimal(request.valorLimiteCredito()).compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.valorLimiteCredito() == null || request.valorLimiteCredito().isBlank() ||  !request.valorLimiteCredito().matches("^-?\\d+(\\.\\d+)?$") ||new BigDecimal(request.valorLimiteCredito()).compareTo(BigDecimal.ZERO) <= 0) {
             throw new ValidationException("O limite de crédito deve ser um numero válido!");
         }
-        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() || !request.diaFechamentoFatura().matches("\\d+") ||Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
+        if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() || !request.diaFechamentoFatura().matches("^-?\\d+(\\.\\d+)?$") ||Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
             throw new ValidationException("Dia de fechamento da fatura deve ser entre 1 e 31.");
         }
     }

@@ -32,7 +32,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occured while searching for the product");
+            throw new SQLException("Não foi possível efetuar a busca do produto!");
         }
     }
 
@@ -50,7 +50,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occured while save product");
+            throw new SQLException("Não foi possível efetuar o cadastro do produto!");
         }
     }
 
@@ -75,7 +75,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occured while update product");
+            throw new SQLException("Não foi possível efetuar a atualização do cadastro do produto!");
         }
     }
 
@@ -94,7 +94,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occured while delete product");
+            throw new SQLException("Não foi possível deletar o produto!");
         }
     }
 
@@ -113,7 +113,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             return produtoList;
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while searching all products.");
+            throw new SQLException("Não foi possível efetuar a busca dos produtos!");
         }
     }
 
@@ -138,7 +138,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             return produtoList;
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("Ocorreu um erro ao buscar produtos!");
+            throw new SQLException("Não foi possível efetuar a busca dos produtos!");
         }
     }
 }

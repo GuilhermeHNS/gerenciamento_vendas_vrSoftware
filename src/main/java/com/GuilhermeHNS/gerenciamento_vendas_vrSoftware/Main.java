@@ -13,6 +13,7 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl.ProdutoServ
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.ClientesForm;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.MenuForm;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.ProdutosForm;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -20,6 +21,17 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
         ClienteDAO clienteDAO = new ClienteDAOImpl();
+        MenuForm menuForm = getMenuForm(clienteDAO);
+        menuForm.setContentPane(menuForm.getMenuPanel());
+        menuForm.setSize(600, 600);
+        menuForm.setResizable(false);
+        menuForm.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        menuForm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        menuForm.setVisible(true);
+    }
+
+    @NotNull
+    private static MenuForm getMenuForm(ClienteDAO clienteDAO) {
         ClienteService clienteService = new ClienteServiceImpl(clienteDAO);
         ClienteController clienteController = new ClienteController(clienteService);
         ClientesForm clientesForm = new ClientesForm(clienteController);
@@ -30,11 +42,6 @@ public class Main {
         ProdutosForm produtosForm = new ProdutosForm(produtoController);
 
         MenuForm menuForm = new MenuForm(clientesForm, produtosForm);
-        menuForm.setContentPane(menuForm.getMenuPanel());
-        menuForm.setSize(600, 600);
-        menuForm.setResizable(false);
-        menuForm.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        menuForm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        menuForm.setVisible(true);
+        return menuForm;
     }
 }

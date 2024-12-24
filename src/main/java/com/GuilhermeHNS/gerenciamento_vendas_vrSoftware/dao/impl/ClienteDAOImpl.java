@@ -27,7 +27,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while save cliente.");
+            throw new SQLException("Não foi possível efetuar o cadastro do cliente!");
         }
     }
 
@@ -58,7 +58,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while searching for the customer.");
+            throw new SQLException("Não foi possível buscar o cliente informado!");
         }
 
     }
@@ -86,7 +86,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while update customer.");
+            throw new SQLException("Não foi possível efetuar a atualização do cadastro do cliente!");
         }
     }
 
@@ -105,7 +105,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while delete customer.");
+            throw new SQLException("Não foi possível deletar o cadastro do cliente!");
         }
     }
 
@@ -134,7 +134,7 @@ public class ClienteDAOImpl implements ClienteDAO {
             return clientesList;
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("An error occurred while searching all customers.");
+            throw new SQLException("Não foi possível buscar os clientes cadastrados!");
         }
     }
 }

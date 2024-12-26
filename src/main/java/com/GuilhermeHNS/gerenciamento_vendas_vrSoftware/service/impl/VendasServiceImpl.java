@@ -59,12 +59,16 @@ public class VendasServiceImpl implements VendasService {
     private void validaCadastroDeVenda(Cliente cliente, RegisterVendaRequest request) throws SQLException {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate dataFechamento = calculaDataFechamento(cliente.diaFechamentoFatura());
+
         String dataFechamentoFormatada = dataFechamento.plusDays(1).atStartOfDay().toString().replace("T", " ");
+        String dataFinal = LocalDate.now().atStartOfDay().toString().replace("T", " ");
+
         BigDecimal valorCreditoCliente = cliente.limiteCredito();
-        BigDecimal valorGasto = vendasDAO.getValorDisponivel(cliente.codigo(), dataFechamentoFormatada);
+        BigDecimal valorGasto = vendasDAO.getValorDisponivel(cliente.codigo(), dataFechamentoFormatada, dataFinal);
         BigDecimal valorVenda = request.vendaProdutoList().stream()
                 .map(produto -> new BigDecimal(produto.preco()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         if (valorVenda.add(valorGasto).compareTo(valorCreditoCliente) > 0) {
             throw new ValidationException("O limite de crédito foi excedido. \n Valor disponivel: R$" + valorCreditoCliente.subtract(valorGasto)
                     + "\n e o próximo fechamento ocorre em " + dataFechamento.plusMonths(1).format(dateFormatter));

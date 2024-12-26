@@ -6,26 +6,25 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.ProdutoVenda;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Venda;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class VendasDAOImpl implements VendasDAO {
     @Override
-    public BigDecimal getValorDisponivel(Long idCliente, String dataFechamento) throws SQLException {
+    public BigDecimal getValorDisponivel(Long idCliente, String dataFechamento, String dataFinal) throws SQLException {
         String sql = "SELECT";
-        sql += "\n COALESCE(SUM(vendas_quantidade * vendas_precoUnitario), 0) AS total_venda";
-        sql += "\n FROM vendas";
-        sql += "\n WHERE venda_cliente_id = ?";
-        sql += "\n AND vendas_dataVendas BETWEEN ?::TIMESTAMP AND CURRENT_TIMESTAMP";
+        sql += "\n COALESCE(SUM(vp.quantidade * vp.preco_unitario), 0) AS total_vendas";
+        sql += "\n FROM vendas v";
+        sql += "\n JOIN venda_produtos vp ON v.venda_id = vp.venda_id";
+        sql += "\n WHERE v.cliente_id = ?";
+        sql += "\n AND v.data_venda BETWEEN ? AND ?;";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setLong(1, idCliente);
             pstmt.setString(2, dataFechamento);
+            pstmt.setString(3, dataFinal);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getBigDecimal("total_venda");
+                    return rs.getBigDecimal("total_vendas");
                 }
                 return new BigDecimal(0);
             }
@@ -37,22 +36,42 @@ public class VendasDAOImpl implements VendasDAO {
 
     @Override
     public void createVenda(Venda venda) throws SQLException {
-        String sql = "INSERT INTO vendas(";
-        sql += "\n         vendas_cliente_id, vendas_produto_id, vendas_quantidade, vendas_precounitario)";
-        sql += "\n VALUES (?, ?, ?, ?, ?);";
+        String sqlVenda = "\n INSERT INTO vendas (cliente_id)";
+        sqlVenda += "\n VALUES (?);";
 
-        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
-            for (ProdutoVenda produtoVenda: venda.produtoVendaList()) {
+        String sqlVendaProduto = "\n INSERT INTO venda_produtos (venda_id, produto_id, quantidade, preco_unitario)";
+        sqlVendaProduto += "\n VALUES (?,?,?,?)";
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sqlVenda, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement pstmtProduto = con.prepareStatement(sqlVendaProduto)) {
+            con.setAutoCommit(false);
+            Long idVenda = 0L;
+            try {
                 pstmt.setLong(1, venda.idCliente());
-                pstmt.setLong(2, produtoVenda.codigo());
-                pstmt.setInt(3, produtoVenda.quantidade());
-                pstmt.setBigDecimal(4, produtoVenda.preco());
-                pstmt.addBatch();
+                pstmt.executeUpdate();
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (!rs.next()) {
+                        throw new Exception("ID da venda não foi gerado!");
+                    }
+                    idVenda = rs.getLong(1);
+                }
+                for (ProdutoVenda produtoVenda : venda.produtoVendaList()) {
+                    pstmtProduto.setLong(1, idVenda);
+                    pstmtProduto.setLong(2, produtoVenda.codigo());
+                    pstmtProduto.setInt(3, produtoVenda.quantidade());
+                    pstmtProduto.setBigDecimal(4, produtoVenda.preco());
+                    pstmtProduto.addBatch();
+                }
+                pstmtProduto.executeBatch();
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw new SQLException(e);
             }
-            pstmt.executeBatch();
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new SQLException("Não foi possível efetuar o registro da venda!");
+            throw new SQLException("Não foi possível efetuar a venda!");
         }
     }
 }

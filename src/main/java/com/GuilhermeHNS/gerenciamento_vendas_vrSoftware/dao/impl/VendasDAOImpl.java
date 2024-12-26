@@ -10,7 +10,6 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaFilter;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class VendasDAOImpl implements VendasDAO {

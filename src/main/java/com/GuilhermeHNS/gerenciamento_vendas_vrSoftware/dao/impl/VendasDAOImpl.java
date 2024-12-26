@@ -2,11 +2,16 @@ package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.impl;
 
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.configuration.DatabaseConnection;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.VendasDAO;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.response.HistoricoVendaClienteResponse;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.ProdutoVenda;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Venda;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaFilter;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class VendasDAOImpl implements VendasDAO {
     @Override
@@ -72,6 +77,53 @@ public class VendasDAOImpl implements VendasDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Não foi possível efetuar a venda!");
+        }
+    }
+
+    @Override
+    public List<HistoricoVendaClienteResponse> getHistoricoVendasCliente(VendaFilter vendaFilter) throws SQLException {
+        List<HistoricoVendaClienteResponse> responseList = new ArrayList<>();
+        String sql = "SELECT";
+        sql += "\n c.cliente_name,";
+        sql += "\n         v.vendas_id,";
+        sql += "\n         v.vendas_dataVendas,";
+        sql += "\n         SUM(vp.quantidade * vp.preco_unitario) AS total_venda";
+        sql += "\n FROM vendas v";
+        sql += "\n INNER JOIN venda_produtos vp ON v.vendas_id = vp.venda_id";
+        sql += "\n INNER JOIN cliente c on c.cliente_id = v.vendas_cliente_id";
+        sql += "\n WHERE v.vendas_cliente_id = ?";
+        if (vendaFilter.dataInicio().isPresent() && vendaFilter.dataFim().isPresent()) {
+            sql += "\n AND v.vendas_dataVendas BETWEEN ? AND ?";
+        }
+        if (vendaFilter.idProduto().isPresent()) {
+            sql += "\n AND vp.produto_id = ?";
+        }
+        sql += "\n GROUP BY v.vendas_id, v.vendas_dataVendas, c.cliente_name";
+        sql += "\n ORDER BY v.vendas_dataVendas DESC;";
+        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
+            Integer countPstmt = 1;
+            pstmt.setLong(countPstmt++, vendaFilter.idCliente().get());
+            if (vendaFilter.dataInicio().isPresent() && vendaFilter.dataFim().isPresent()) {
+                pstmt.setString(countPstmt++, vendaFilter.dataInicio().get());
+                pstmt.setString(countPstmt++, vendaFilter.dataFim().get());
+            }
+            if (vendaFilter.idProduto().isPresent()) {
+                pstmt.setLong(countPstmt++, vendaFilter.idProduto().get());
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    responseList.add(new HistoricoVendaClienteResponse(
+                            rs.getString("cliente_name"),
+                            rs.getLong("venda_id"),
+                            rs.getString("vendas_dataVendas"),
+                            rs.getBigDecimal("total_vendas"))
+                    );
+                }
+            }
+            return responseList;
+        }catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Não foi possível consultar os registros de venda!");
         }
     }
 }

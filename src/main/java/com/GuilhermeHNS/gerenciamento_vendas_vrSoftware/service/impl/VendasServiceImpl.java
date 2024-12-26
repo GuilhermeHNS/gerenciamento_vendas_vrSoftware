@@ -1,11 +1,14 @@
 package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl;
 
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.VendasDAO;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.ConsultaVendaRequest;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterVendaRequest;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.response.HistoricoVendaClienteResponse;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.ProdutoVenda;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Venda;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaFilter;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.VendasService;
 
@@ -15,6 +18,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.ExibeJPanelError.exibeError;
@@ -44,6 +48,26 @@ public class VendasServiceImpl implements VendasService {
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public List<HistoricoVendaClienteResponse> getHistoricoVendasCliente(ConsultaVendaRequest request) {
+        try {
+            String cpfCnpj = request.cpfCnpj().orElseThrow(() -> new ValidationException("CPF / CNPJ é obrigatório"));
+            Cliente cliente = clienteService.getClienteByDoc(cpfCnpj);
+            Optional<Long> idProduto = request.idProduto().isPresent() ? Optional.of(Long.parseLong(request.idProduto().get())) : Optional.empty();
+            VendaFilter vendaFilter = new VendaFilter(
+                    Optional.of(cliente.codigo()),
+                    request.dataInicio(),
+                    request.dataFim(),
+                    idProduto
+            );
+            return vendasDAO.getHistoricoVendasCliente(vendaFilter);
+        } catch (SQLException e) {
+            exibeError("Erro: " + e.getMessage());
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
 
     private LocalDate calculaDataFechamento(int diaFechamento) {
         LocalDate dataAtual = LocalDate.now();

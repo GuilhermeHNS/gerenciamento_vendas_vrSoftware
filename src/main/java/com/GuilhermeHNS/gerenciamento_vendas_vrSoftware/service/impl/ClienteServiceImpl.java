@@ -8,7 +8,6 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ValidationExc
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 
-import javax.swing.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;

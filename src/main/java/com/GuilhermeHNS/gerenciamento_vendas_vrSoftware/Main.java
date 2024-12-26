@@ -25,7 +25,6 @@ public class Main {
         menuForm.setContentPane(menuForm.getMenuPanel());
         menuForm.setSize(600, 600);
         menuForm.setResizable(false);
-        menuForm.setExtendedState(JFrame.MAXIMIZED_BOTH);
         menuForm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         menuForm.setVisible(true);
     }

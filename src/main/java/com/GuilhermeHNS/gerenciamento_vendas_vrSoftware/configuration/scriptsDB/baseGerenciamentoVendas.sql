@@ -15,7 +15,7 @@ CREATE TABLE produto (
 CREATE TABLE vendas (
     vendas_id SERIAL PRIMARY KEY,
     vendas_cliente_id INT NOT NULL,
-    vendas_dataVendas TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    vendas_dataVendas TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_cliente FOREIGN KEY (vendas_cliente_id) REFERENCES cliente(cliente_id)
 );
 
@@ -25,6 +25,6 @@ CREATE TABLE venda_produtos (
     quantidade INT NOT NULL,
     preco_unitario NUMERIC(10,2) NOT NULL,
     PRIMARY KEY (venda_id, produto_id),
-    FOREIGN KEY (venda_id) REFERENCES vendas(venda_id),
-    FOREIGN KEY (produto_id) REFERENCES produtos(produto_id)
+    FOREIGN KEY (venda_id) REFERENCES vendas(vendas_id),
+    FOREIGN KEY (produto_id) REFERENCES produto(produto_id)
 );

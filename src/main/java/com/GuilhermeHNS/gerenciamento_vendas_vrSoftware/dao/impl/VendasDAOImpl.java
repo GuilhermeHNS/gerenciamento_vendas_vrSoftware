@@ -3,7 +3,7 @@ package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.impl;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.configuration.DatabaseConnection;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dao.VendasDAO;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.response.HistoricoVendaClienteResponse;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.ProdutoVenda;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaProdutos;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Venda;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaFilter;
 
@@ -39,18 +39,11 @@ public class VendasDAOImpl implements VendasDAO {
     }
 
     @Override
-    public void createVenda(Venda venda) throws SQLException {
+    public Long createVenda(Venda venda, Connection con) throws SQLException {
         String sqlVenda = "\n INSERT INTO vendas (cliente_id)";
         sqlVenda += "\n VALUES (?);";
 
-        String sqlVendaProduto = "\n INSERT INTO venda_produtos (venda_id, produto_id, quantidade, preco_unitario)";
-        sqlVendaProduto += "\n VALUES (?,?,?,?)";
-
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = con.prepareStatement(sqlVenda, Statement.RETURN_GENERATED_KEYS);
-             PreparedStatement pstmtProduto = con.prepareStatement(sqlVendaProduto)) {
-            con.setAutoCommit(false);
-            Long idVenda = 0L;
+        try (PreparedStatement pstmt = con.prepareStatement(sqlVenda, Statement.RETURN_GENERATED_KEYS)) {
             try {
                 pstmt.setLong(1, venda.idCliente());
                 pstmt.executeUpdate();
@@ -58,24 +51,14 @@ public class VendasDAOImpl implements VendasDAO {
                     if (!rs.next()) {
                         throw new Exception("ID da venda não foi gerado!");
                     }
-                    idVenda = rs.getLong(1);
+                    return rs.getLong(1);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-                for (ProdutoVenda produtoVenda : venda.produtoVendaList()) {
-                    pstmtProduto.setLong(1, idVenda);
-                    pstmtProduto.setLong(2, produtoVenda.codigo());
-                    pstmtProduto.setInt(3, produtoVenda.quantidade());
-                    pstmtProduto.setBigDecimal(4, produtoVenda.preco());
-                    pstmtProduto.addBatch();
-                }
-                pstmtProduto.executeBatch();
-                con.commit();
-            } catch (Exception e) {
-                con.rollback();
-                throw new SQLException(e);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw new SQLException("Não foi possível efetuar a venda!");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SQLException("Não foi possível efetuar a venda!");
         }
     }
 
@@ -120,9 +103,18 @@ public class VendasDAOImpl implements VendasDAO {
                 }
             }
             return responseList;
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Não foi possível consultar os registros de venda!");
+        }
+    }
+
+    @Override
+    public void deleteVenda(Long id, Connection con) throws SQLException {
+        String sql = "DELETE FROM vendas WHERE vendas_id = ?";
+        try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
         }
     }
 }

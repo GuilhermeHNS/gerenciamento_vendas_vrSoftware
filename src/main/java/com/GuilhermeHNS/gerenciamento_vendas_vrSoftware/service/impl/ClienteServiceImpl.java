@@ -44,6 +44,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public Cliente getClienteByDoc(String cpfCnpj) {
         try {
+            if(!validaCPFouCNPJ(cpfCnpj)) {
+                throw new ValidationException("CPF/CNPJ deve ser válido!");
+            }
             Optional<Cliente> cliente = clienteDAO.getClienteByCpfCnpj(cpfCnpj);
             return cliente.orElseThrow(() -> {
                 exibeError("Cliente não encontrado!");

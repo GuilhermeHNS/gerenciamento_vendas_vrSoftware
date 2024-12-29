@@ -13,6 +13,7 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.impl.ProdutoServ
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.ClientesForm;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.MenuForm;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.ProdutosForm;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.VendasForm;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,7 +40,9 @@ public class Main {
         ProdutoController produtoController = new ProdutoController(produtoService);
         ProdutosForm produtosForm = new ProdutosForm(produtoController);
 
-        MenuForm menuForm = new MenuForm(clientesForm, produtosForm);
+        VendasForm vendasForm = new VendasForm(clienteController, produtoController);
+
+        MenuForm menuForm = new MenuForm(clientesForm, produtosForm, vendasForm);
         return menuForm;
     }
 }

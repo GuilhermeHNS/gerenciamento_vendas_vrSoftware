@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.ExibeJPanelError.exibeError;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.exibeJPanel;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.validaCPFouCNPJ;
+
 
 public class ClienteServiceImpl implements ClienteService {
 
@@ -30,13 +32,13 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             Optional<Cliente> existingCliente = clienteDAO.getClienteByCpfCnpj(request.cpfCnpj());
             if (existingCliente.isPresent()) {
-                exibeError("Cliente já existente!");
+                exibeJPanel("Cliente já existente!");
                 throw new ClienteAlreadyExistException();
             }
             Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
             clienteDAO.createCliente(cliente);
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -49,11 +51,11 @@ public class ClienteServiceImpl implements ClienteService {
             }
             Optional<Cliente> cliente = clienteDAO.getClienteByCpfCnpj(cpfCnpj);
             return cliente.orElseThrow(() -> {
-                exibeError("Cliente não encontrado!");
+                exibeJPanel("Cliente não encontrado!");
                 return new ClienteNotFoundException("Cliente not found!");
             });
         } catch (SQLException e) {
-            exibeError("Não foi possível obter o cliente!");
+            exibeJPanel("Não foi possível obter o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -65,7 +67,7 @@ public class ClienteServiceImpl implements ClienteService {
             Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
             clienteDAO.updateCliente(cliente);
         } catch (SQLException e) {
-            exibeError("Não foi possível atualizar o cliente!");
+            exibeJPanel("Não foi possível atualizar o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -75,7 +77,7 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             clienteDAO.deleteCliente(cpfCnpj);
         } catch (SQLException e) {
-            exibeError("Não foi possível deleter o cliente!");
+            exibeJPanel("Não foi possível deleter o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -85,7 +87,7 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             return clienteDAO.getAllClientes();
         } catch (SQLException e) {
-            exibeError("Não foi possível efetuar a busca dos clientes!");
+            exibeJPanel("Não foi possível efetuar a busca dos clientes!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -103,12 +105,5 @@ public class ClienteServiceImpl implements ClienteService {
         if (request.diaFechamentoFatura() == null || request.diaFechamentoFatura().isBlank() || !request.diaFechamentoFatura().matches("^-?\\d+(\\.\\d+)?$") ||Integer.parseInt(request.diaFechamentoFatura()) < 1 || Integer.parseInt(request.diaFechamentoFatura()) > 31) {
             throw new ValidationException("Dia de fechamento da fatura deve ser entre 1 e 31.");
         }
-    }
-
-    public boolean validaCPFouCNPJ(String input) {
-        String regexCPF = "^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$";
-        String regexCNPJ = "^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$";
-
-        return Pattern.matches(regexCPF, input) || Pattern.matches(regexCNPJ, input);
     }
 }

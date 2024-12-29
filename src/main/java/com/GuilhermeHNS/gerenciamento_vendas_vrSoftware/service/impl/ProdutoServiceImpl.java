@@ -13,7 +13,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.ExibeJPanelError.exibeError;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.exibeJPanel;
+
 
 public class ProdutoServiceImpl implements ProdutoService {
 
@@ -29,11 +30,11 @@ public class ProdutoServiceImpl implements ProdutoService {
             Long idProduto = Long.parseLong(codigo);
             Optional<Produto> produto = produtoDAO.findProdutoById(idProduto);
             return produto.orElseThrow(() -> {
-                exibeError("Produto não encontrado!");
+                exibeJPanel("Produto não encontrado!");
                 return new ProdutoNotFoundException();
             });
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -45,7 +46,7 @@ public class ProdutoServiceImpl implements ProdutoService {
             Produto produto = new Produto(-1L, request.descricao(), new BigDecimal(request.preco()));
             produtoDAO.createProduto(produto);
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -61,7 +62,7 @@ public class ProdutoServiceImpl implements ProdutoService {
             );
             produtoDAO.updateProduto(produto);
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -71,7 +72,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         try {
             produtoDAO.deleteProduto(codigo);
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -81,7 +82,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         try {
             return produtoDAO.findAll();
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -91,7 +92,7 @@ public class ProdutoServiceImpl implements ProdutoService {
         try {
             return produtoDAO.findProdutoByDesc(descricao);
         } catch (SQLException e) {
-            exibeError("Error: " + e.getMessage());
+            exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }

@@ -18,14 +18,14 @@ public class VendasDAOImpl implements VendasDAO {
         String sql = "SELECT";
         sql += "\n COALESCE(SUM(vp.quantidade * vp.preco_unitario), 0) AS total_vendas";
         sql += "\n FROM vendas v";
-        sql += "\n JOIN venda_produtos vp ON v.venda_id = vp.venda_id";
-        sql += "\n WHERE v.cliente_id = ?";
-        sql += "\n AND v.data_venda BETWEEN ? AND ?;";
+        sql += "\n JOIN venda_produtos vp ON v.vendas_id = vp.venda_id";
+        sql += "\n WHERE v.vendas_cliente_id = ?";
+        sql += "\n AND v.vendas_datavendas BETWEEN ? AND ?;";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setLong(1, idCliente);
-            pstmt.setString(2, dataFechamento);
-            pstmt.setString(3, dataFinal);
+            pstmt.setTimestamp(2, Timestamp.valueOf(dataFechamento + ":00"));
+            pstmt.setTimestamp(3, Timestamp.valueOf(dataFinal));
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getBigDecimal("total_vendas");
@@ -40,7 +40,7 @@ public class VendasDAOImpl implements VendasDAO {
 
     @Override
     public Long createVenda(Venda venda, Connection con) throws SQLException {
-        String sqlVenda = "\n INSERT INTO vendas (cliente_id)";
+        String sqlVenda = "\n INSERT INTO vendas (vendas_cliente_id)";
         sqlVenda += "\n VALUES (?);";
 
         try (PreparedStatement pstmt = con.prepareStatement(sqlVenda, Statement.RETURN_GENERATED_KEYS)) {

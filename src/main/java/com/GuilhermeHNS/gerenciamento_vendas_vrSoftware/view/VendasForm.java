@@ -2,10 +2,11 @@ package com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view;
 
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.controllers.ClienteController;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.controllers.ProdutoController;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.controllers.VendasController;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.VendaProdutoDTO;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.RegisterVendaRequest;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Produto;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ProdutoService;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.view.documents.FieldNumberDocument;
 
 import javax.swing.*;
@@ -18,6 +19,8 @@ import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.exibeJPanel;
 
 public class VendasForm extends JFrame {
     private JTextField codProdutoField;
@@ -39,20 +42,22 @@ public class VendasForm extends JFrame {
     private JButton cancelarButton;
     private Cliente cliente = null;
     private Produto produto = null;
-    private List<Produto> produtosAdicionados = new ArrayList<>();
+    private List<VendaProdutoDTO> produtosAdicionados = new ArrayList<>();
     private Integer countProdutoCarrinho = 0;
     private BigDecimal valorTotal = new BigDecimal(0.00);
     private final ClienteController clienteController;
     private final ProdutoController produtoController;
+    private final VendasController vendasController;
     private final int INICIAL = 0;
     private final int EDITANDO = 1;
     private int ESTADO_ATUAL = INICIAL;
     private int linhaEditada = -1;
 
 
-    public VendasForm(ClienteController clienteController, ProdutoController produtoController) {
+    public VendasForm(ClienteController clienteController, ProdutoController produtoController, VendasController vendasController) {
         this.clienteController = clienteController;
         this.produtoController = produtoController;
+        this.vendasController = vendasController;
         inicializaComponentes();
         pesquisarClienteButton.addActionListener(new ActionListener() {
             @Override
@@ -75,11 +80,11 @@ public class VendasForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 boolean alreadyAdd = produtosAdicionados.stream()
-                        .anyMatch(p -> p.codigo() == produto.codigo());
+                        .anyMatch(p -> Long.parseLong(p.getCodigo()) == produto.codigo());
 
                 if (!alreadyAdd) {
                     valorTotal = valorTotal.add(produto.preco().multiply(new BigDecimal(qtdField.getText())));
-                    produtosAdicionados.add(produto);
+                    produtosAdicionados.add(new VendaProdutoDTO(produto.codigo().toString(), produto.preco().toString(), qtdField.getText()));
                     DefaultTableModel dados = (DefaultTableModel) tableProdutos.getModel();
                     dados.addRow(new Object[]{
                             produto.codigo(),
@@ -93,7 +98,7 @@ public class VendasForm extends JFrame {
                     limpaCamposProduto();
                     valorTotalField.setText(valorTotal.toString());
                 } else {
-                    JOptionPane.showMessageDialog(null, "Produto já adicionado ao carrinho!");
+                    exibeJPanel("Produto já adicionado ao carrinho!");
                 }
             }
         });
@@ -120,9 +125,14 @@ public class VendasForm extends JFrame {
         editarButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int qtdAtualizada = Integer.parseInt(qtdField.getText());
+                Integer qtdAtualizada = Integer.parseInt(qtdField.getText());
                 DefaultTableModel modeloTabela = (DefaultTableModel) tableProdutos.getModel();
                 modeloTabela.setValueAt(qtdAtualizada, linhaEditada, 3);
+                String idProdutoSelecionado = modeloTabela.getValueAt(linhaEditada, 0).toString();
+                produtosAdicionados.stream()
+                        .filter(p -> p.getCodigo().equals(idProdutoSelecionado))
+                        .findFirst()
+                        .ifPresent(p -> p.setQuantidade(qtdAtualizada.toString()));
                 calculaValorTotal();
                 ESTADO_ATUAL = INICIAL;
                 habilitaCampos();
@@ -136,7 +146,7 @@ public class VendasForm extends JFrame {
                 if (selectedRow != -1) {
                     DefaultTableModel modeloTabela = (DefaultTableModel) tableProdutos.getModel();
                     Long codigo = Long.parseLong(tableProdutos.getValueAt(selectedRow, 0).toString());
-                    produtosAdicionados.removeIf(p -> p.codigo() == codigo);
+                    produtosAdicionados.removeIf(p -> Long.parseLong(p.getCodigo()) == codigo);
                     modeloTabela.removeRow(selectedRow);
                     countProdutoCarrinho--;
                     qtdProdutosField.setText(countProdutoCarrinho.toString());
@@ -153,6 +163,15 @@ public class VendasForm extends JFrame {
                 ESTADO_ATUAL = INICIAL;
                 habilitaCampos();
                 limpaCamposProduto();
+            }
+        });
+        efetuarVendaButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RegisterVendaRequest request = new RegisterVendaRequest(cliente.cpfCnpj(), produtosAdicionados);
+                vendasController.registerVenda(request);
+                JOptionPane.showMessageDialog(null, "Venda registrada com sucesso!");
+                limpaTodosOsCampos();
             }
         });
     }
@@ -210,7 +229,7 @@ public class VendasForm extends JFrame {
     }
 
     private void calculaValorTotal() {
-        valorTotal = new BigDecimal(0);
+        valorTotal = BigDecimal.ZERO;
         DefaultTableModel modeloTabela = (DefaultTableModel) tableProdutos.getModel();
         int rowCount = modeloTabela.getRowCount();
         for (int row = 0; row < rowCount; row++) {
@@ -219,5 +238,20 @@ public class VendasForm extends JFrame {
             valorTotal = valorTotal.add(valorProduto.multiply(qtdProduto));
         }
         valorTotalField.setText(valorTotal.toString());
+    }
+
+    private void limpaTodosOsCampos() {
+        limpaCamposProduto();
+        cpfCnpjField.setText("");
+        valorTotalField.setText("");
+        qtdProdutosField.setText("");
+        nomeField.setText("");
+        countProdutoCarrinho = 0;
+        cliente = null;
+        produto = null;
+        produtosAdicionados = new ArrayList<>();
+        valorTotal = BigDecimal.ZERO;
+        DefaultTableModel modeloTabela = (DefaultTableModel) tableProdutos.getModel();
+        modeloTabela.setNumRows(0);
     }
 }

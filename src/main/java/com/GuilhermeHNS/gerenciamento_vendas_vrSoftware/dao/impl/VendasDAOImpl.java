@@ -65,33 +65,39 @@ public class VendasDAOImpl implements VendasDAO {
     @Override
     public List<HistoricoVendaClienteResponse> getHistoricoVendasCliente(VendaFilter vendaFilter) throws SQLException {
         List<HistoricoVendaClienteResponse> responseList = new ArrayList<>();
-        String sql = "SELECT";
-        sql += "\n c.cliente_name,";
-        sql += "\n         v.vendas_id,";
-        sql += "\n         v.vendas_dataVendas,";
-        sql += "\n         SUM(vp.quantidade * vp.preco_unitario) AS total_venda";
-        sql += "\n FROM vendas v";
-        sql += "\n INNER JOIN venda_produtos vp ON v.vendas_id = vp.venda_id";
-        sql += "\n INNER JOIN cliente c on c.cliente_id = v.vendas_cliente_id";
-        sql += "\n WHERE v.vendas_cliente_id = ?";
-        if (vendaFilter.dataInicio().isPresent() && vendaFilter.dataFim().isPresent()) {
-            sql += "\n AND v.vendas_dataVendas BETWEEN ? AND ?";
+        String sql = "select distinct";
+        sql += "\n v.vendas_id,";
+        sql += "\n         c.cliente_name,";
+        sql += "\n         TO_CHAR(v.vendas_datavendas, 'DD/MM/YYYY HH24:MI:SS') as vendas_datavendas,";
+        sql += "\n         sum(vp.preco_unitario * vp.quantidade) as total_vendas";
+        sql += "\n from vendas v";
+        sql += "\n inner join venda_produtos vp on vp.venda_id = v.vendas_id";
+        sql += "\n inner join cliente c on c.cliente_id = v.vendas_cliente_id";
+        if (vendaFilter.getIdProduto().isPresent()) {
+            sql += "\n LEFT JOIN venda_produtos vp2 ON vp2.venda_id = v.vendas_id";
         }
-        if (vendaFilter.idProduto().isPresent()) {
-            sql += "\n AND vp.produto_id = ?";
+        sql += "\n where v.vendas_datavendas BETWEEN ?::timestamp AND ?::timestamp";
+        if (vendaFilter.getIdCliente().isPresent()) {
+            sql += "\n AND c.cliente_id = ?";
         }
-        sql += "\n GROUP BY v.vendas_id, v.vendas_dataVendas, c.cliente_name";
-        sql += "\n ORDER BY v.vendas_dataVendas DESC;";
+        if (vendaFilter.getIdProduto().isPresent()) {
+            sql += "\n AND vp2.produto_id = ?";
+        }
+        sql += "\n group by v.vendas_id, c.cliente_name";
+        sql += "\n order by v.vendas_id desc;";
+
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
-            Integer countPstmt = 1;
-            pstmt.setLong(countPstmt++, vendaFilter.idCliente().get());
-            if (vendaFilter.dataInicio().isPresent() && vendaFilter.dataFim().isPresent()) {
-                pstmt.setString(countPstmt++, vendaFilter.dataInicio().get());
-                pstmt.setString(countPstmt++, vendaFilter.dataFim().get());
+            int countPstmt = 1;
+            pstmt.setString(countPstmt++, vendaFilter.getDataInicio());
+            pstmt.setString(countPstmt++, vendaFilter.getDataFim());
+
+            if(vendaFilter.getIdCliente().isPresent()){
+                pstmt.setLong(countPstmt++, vendaFilter.getIdCliente().get());
             }
-            if (vendaFilter.idProduto().isPresent()) {
-                pstmt.setLong(countPstmt++, vendaFilter.idProduto().get());
+            if (vendaFilter.getIdProduto().isPresent()) {
+                pstmt.setLong(countPstmt, vendaFilter.getIdProduto().get());
             }
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     responseList.add(new HistoricoVendaClienteResponse(

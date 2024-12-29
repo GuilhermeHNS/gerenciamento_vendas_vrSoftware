@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.exibeJPanel;
-import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.validaCPFouCNPJ;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.*;
 
 public class VendasServiceImpl implements VendasService {
     private final ClienteService clienteService;
@@ -46,20 +45,20 @@ public class VendasServiceImpl implements VendasService {
 
     @Override
     public void createVenda(RegisterVendaRequest request) {
-        try  {
+        try {
             validaRequestCriacaoVenda(request);
             Cliente cliente = clienteService.getClienteByDoc(request.cpfCnpjCliente());
             validaValorExcedido(cliente, request.vendaProdutoList(), true, "");
-            try (Connection con = DatabaseConnection.getConnection()){
+            try (Connection con = DatabaseConnection.getConnection()) {
                 con.setAutoCommit(false);
-                try{
+                try {
                     Venda venda = new Venda(-1L, cliente.codigo(), "");
                     Long idVenda = vendasDAO.createVenda(venda, con);
                     List<VendaProdutos> vendaProdutoList = request.vendaProdutoList()
                             .stream().map(produto -> new VendaProdutos(idVenda, Long.parseLong(produto.getCodigo()), Integer.parseInt(produto.getQuantidade()), new BigDecimal(produto.getPreco()))).collect(Collectors.toList());
                     vendasProdutoDAO.createVendaProduto(vendaProdutoList, con);
                     con.commit();
-                }catch (Exception e) {
+                } catch (Exception e) {
                     con.rollback();
                     throw new SQLException(e);
                 }
@@ -95,15 +94,10 @@ public class VendasServiceImpl implements VendasService {
     @Override
     public List<HistoricoVendaClienteResponse> getHistoricoVendasCliente(ConsultaVendaRequest request) {
         try {
-            String cpfCnpj = request.cpfCnpj().orElseThrow(() -> new ValidationException("CPF / CNPJ é obrigatório"));
-            Cliente cliente = clienteService.getClienteByDoc(cpfCnpj);
-            Optional<Long> idProduto = request.idProduto().isPresent() ? Optional.of(Long.parseLong(request.idProduto().get())) : Optional.empty();
-            VendaFilter vendaFilter = new VendaFilter(
-                    Optional.of(cliente.codigo()),
-                    request.dataInicio(),
-                    request.dataFim(),
-                    idProduto
-            );
+            if (request.getDataInicio().isBlank() || request.getDataFim().isBlank()) {
+                throw new ValidationException("Informe o periodo da consulta!");
+            }
+            VendaFilter vendaFilter = convertHistoricoVendaRequestToVendasFilter(request);
             return vendasDAO.getHistoricoVendasCliente(vendaFilter);
         } catch (SQLException e) {
             exibeJPanel("Erro: " + e.getMessage());
@@ -142,7 +136,7 @@ public class VendasServiceImpl implements VendasService {
         if (!validaCPFouCNPJ(request.cpfCnpjCliente())) {
             throw new ValidationException("Informe um CPF Válido!");
         }
-        if(request.vendaProdutoList().isEmpty()) {
+        if (request.vendaProdutoList().isEmpty()) {
             throw new ValidationException("Adicione pelo menos 1 produto para concluir a venda!");
         }
     }
@@ -196,6 +190,24 @@ public class VendasServiceImpl implements VendasService {
         return vendaProdutoDTOList.stream()
                 .map(produto -> new BigDecimal(produto.getPreco()).multiply(new BigDecimal(produto.getQuantidade())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private VendaFilter convertHistoricoVendaRequestToVendasFilter(ConsultaVendaRequest request) {
+        VendaFilter vendaFilter = new VendaFilter();
+
+        request.getCpfCnpj().ifPresent(cpfCnpj -> {
+            Cliente cliente = clienteService.getClienteByDoc(cpfCnpj);
+            vendaFilter.setIdCliente(Optional.of(cliente.codigo()));
+        });
+
+        vendaFilter.setDataInicio(request.getDataInicio());
+        vendaFilter.setDataFim(request.getDataFim());
+
+        vendaFilter.setIdProduto(
+                request.getIdProduto().map(Long::parseLong)
+        );
+
+        return vendaFilter;
     }
 
 }

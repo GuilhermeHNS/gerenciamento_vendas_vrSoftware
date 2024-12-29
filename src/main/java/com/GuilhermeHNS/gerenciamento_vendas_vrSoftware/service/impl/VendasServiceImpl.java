@@ -11,12 +11,12 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.request.UpdateVenda
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.dtos.response.HistoricoVendaClienteResponse;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.exceptions.ValidationException;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaProdutos;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Venda;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaFilter;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.VendaProdutos;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.ClienteService;
 import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.service.VendasService;
-import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.UtilsDatas;
+import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.ExibeJPanelError.exibeError;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.exibeJPanel;
+import static com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.utils.Utils.validaCPFouCNPJ;
 
 public class VendasServiceImpl implements VendasService {
     private final ClienteService clienteService;
@@ -45,23 +46,26 @@ public class VendasServiceImpl implements VendasService {
 
     @Override
     public void createVenda(RegisterVendaRequest request) {
-        try (Connection con = DatabaseConnection.getConnection()) {
-            con.setAutoCommit(false);
-            try {
-                Cliente cliente = clienteService.getClienteByDoc(request.cpfCnpjCliente());
-                validaValorExcedido(cliente, request.vendaProdutoList(), true, "");
-                Venda venda = new Venda(-1L, cliente.codigo(), "");
-                Long idVenda = vendasDAO.createVenda(venda, con);
-                List<VendaProdutos> vendaProdutoList = request.vendaProdutoList()
-                        .stream().map(produto -> new VendaProdutos(idVenda, Long.parseLong(produto.codigo()), Integer.parseInt(produto.quantidade()), new BigDecimal(produto.preco()))).collect(Collectors.toList());
-                vendasProdutoDAO.createVendaProduto(vendaProdutoList, con);
-                con.commit();
-            } catch (Exception e) {
-                con.rollback();
-                throw new SQLException(e);
+        try  {
+            validaRequestCriacaoVenda(request);
+            Cliente cliente = clienteService.getClienteByDoc(request.cpfCnpjCliente());
+            validaValorExcedido(cliente, request.vendaProdutoList(), true, "");
+            try (Connection con = DatabaseConnection.getConnection()){
+                con.setAutoCommit(false);
+                try{
+                    Venda venda = new Venda(-1L, cliente.codigo(), "");
+                    Long idVenda = vendasDAO.createVenda(venda, con);
+                    List<VendaProdutos> vendaProdutoList = request.vendaProdutoList()
+                            .stream().map(produto -> new VendaProdutos(idVenda, Long.parseLong(produto.getCodigo()), Integer.parseInt(produto.getQuantidade()), new BigDecimal(produto.getPreco()))).collect(Collectors.toList());
+                    vendasProdutoDAO.createVendaProduto(vendaProdutoList, con);
+                    con.commit();
+                }catch (Exception e) {
+                    con.rollback();
+                    throw new SQLException(e);
+                }
             }
         } catch (SQLException e) {
-            exibeError("Erro: " + e.getMessage());
+            exibeJPanel("Erro: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -76,14 +80,14 @@ public class VendasServiceImpl implements VendasService {
                 Long idVenda = Long.parseLong(request.idVenda());
                 vendasProdutoDAO.deleteProdutoByIdVenda(idVenda, con);
                 List<VendaProdutos> vendaProdutoList = request.vendaProdutoList()
-                        .stream().map(produto -> new VendaProdutos(idVenda, Long.parseLong(produto.codigo()), Integer.parseInt(produto.quantidade()), new BigDecimal(produto.preco()))).collect(Collectors.toList());
+                        .stream().map(produto -> new VendaProdutos(idVenda, Long.parseLong(produto.getCodigo()), Integer.parseInt(produto.getQuantidade()), new BigDecimal(produto.getPreco()))).collect(Collectors.toList());
                 vendasProdutoDAO.createVendaProduto(vendaProdutoList, con);
             } catch (Exception e) {
                 con.rollback();
                 throw new SQLException(e);
             }
         } catch (SQLException e) {
-            exibeError("Erro: " + e.getMessage());
+            exibeJPanel("Erro: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -102,17 +106,17 @@ public class VendasServiceImpl implements VendasService {
             );
             return vendasDAO.getHistoricoVendasCliente(vendaFilter);
         } catch (SQLException e) {
-            exibeError("Erro: " + e.getMessage());
+            exibeJPanel("Erro: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void deleteVenda(String id) {
-        try(Connection con = DatabaseConnection.getConnection()) {
+        try (Connection con = DatabaseConnection.getConnection()) {
             Long idVenda = Long.parseLong(id);
             con.setAutoCommit(false);
-            try{
+            try {
                 vendasProdutoDAO.deleteProdutoByIdVenda(idVenda, con);
                 vendasDAO.deleteVenda(idVenda, con);
             } catch (Exception e) {
@@ -120,7 +124,7 @@ public class VendasServiceImpl implements VendasService {
                 throw new SQLException(e);
             }
         } catch (SQLException e) {
-            exibeError("Erro: " + e.getMessage());
+            exibeJPanel("Erro: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -131,7 +135,16 @@ public class VendasServiceImpl implements VendasService {
                 ? YearMonth.of(dataAtual.getYear(), dataAtual.getMonth())
                 : YearMonth.of(dataAtual.getYear(), dataAtual.getMonth().minus(1));
 
-        return UtilsDatas.calculaDataValida(anoMesFechamento, diaFechamento);
+        return Utils.calculaDataValida(anoMesFechamento, diaFechamento);
+    }
+
+    private void validaRequestCriacaoVenda(RegisterVendaRequest request) {
+        if (!validaCPFouCNPJ(request.cpfCnpjCliente())) {
+            throw new ValidationException("Informe um CPF Válido!");
+        }
+        if(request.vendaProdutoList().isEmpty()) {
+            throw new ValidationException("Adicione pelo menos 1 produto para concluir a venda!");
+        }
     }
 
     private void validaValorExcedido(Cliente cliente, List<VendaProdutoDTO> vendaProdutoList, Boolean isNewVenda, String dataCompra) throws SQLException {
@@ -174,14 +187,14 @@ public class VendasServiceImpl implements VendasService {
             anoMesInicial = anoMesInicial.minusMonths(1);
         }
         anoMesFinal = anoMesInicial.plusMonths(1);
-        LocalDate dataInicial = UtilsDatas.calculaDataValida(anoMesInicial, diaFechamento);
-        LocalDate dataFinal = UtilsDatas.calculaDataValida(anoMesFinal, diaFechamento);
+        LocalDate dataInicial = Utils.calculaDataValida(anoMesInicial, diaFechamento);
+        LocalDate dataFinal = Utils.calculaDataValida(anoMesFinal, diaFechamento);
         return Arrays.asList(dataInicial, dataFinal);
     }
 
     private BigDecimal calcularValorVenda(List<VendaProdutoDTO> vendaProdutoDTOList) {
         return vendaProdutoDTOList.stream()
-                .map(produto -> new BigDecimal(produto.preco()))
+                .map(produto -> new BigDecimal(produto.getPreco()).multiply(new BigDecimal(produto.getQuantidade())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

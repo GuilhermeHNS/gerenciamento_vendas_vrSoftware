@@ -3,13 +3,15 @@ CREATE TABLE cliente (
     cliente_name VARCHAR(100) NOT NULL,
     cliente_cpfCnpj VARCHAR(14) UNIQUE NOT NULL,
     cliente_limiteCompra NUMERIC(10,2) NOT NULL,
-    cliente_diaFechamentoFatura SMALLINT NOT NULL
+    cliente_diaFechamentoFatura SMALLINT NOT NULL,
+    cliente_ativo BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE produto (
     produto_id SERIAL PRIMARY KEY,
     produto_descricao VARCHAR(255) NOT NULL,
-    produto_preco NUMERIC(10,2) NOT NULL
+    produto_preco NUMERIC(10,2) NOT NULL,
+    produto_ativo BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE vendas (

@@ -6,6 +6,7 @@ public record RegisterUpdateClienteRequest(
         String name,
         String cpfCnpj,
         String valorLimiteCredito,
-        String diaFechamentoFatura
+        String diaFechamentoFatura,
+        Boolean ativo
 ) {
 }

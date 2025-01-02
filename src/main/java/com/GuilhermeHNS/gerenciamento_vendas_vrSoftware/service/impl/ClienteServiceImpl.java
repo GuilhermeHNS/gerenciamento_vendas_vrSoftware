@@ -35,7 +35,7 @@ public class ClienteServiceImpl implements ClienteService {
                 exibeJPanel("Cliente já existente!");
                 throw new ClienteAlreadyExistException();
             }
-            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
+            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()), request.ativo());
             clienteDAO.createCliente(cliente);
         } catch (SQLException e) {
             exibeJPanel("Error: " + e.getMessage());
@@ -64,7 +64,7 @@ public class ClienteServiceImpl implements ClienteService {
     public void updateCliente(RegisterUpdateClienteRequest request) {
         verificaDadosParaPersistenciaDeCliente(request);
         try {
-            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()));
+            Cliente cliente = new Cliente(-1L, request.name(), request.cpfCnpj(), new BigDecimal(request.valorLimiteCredito()), Integer.parseInt(request.diaFechamentoFatura()), request.ativo());
             clienteDAO.updateCliente(cliente);
         } catch (SQLException e) {
             exibeJPanel("Não foi possível atualizar o cliente!");
@@ -77,7 +77,7 @@ public class ClienteServiceImpl implements ClienteService {
         try {
             clienteDAO.deleteCliente(cpfCnpj);
         } catch (SQLException e) {
-            exibeJPanel("Não foi possível deleter o cliente!");
+            exibeJPanel("Não foi possível inativar o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }
@@ -88,6 +88,33 @@ public class ClienteServiceImpl implements ClienteService {
             return clienteDAO.getAllClientes();
         } catch (SQLException e) {
             exibeJPanel("Não foi possível efetuar a busca dos clientes!");
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Cliente getClienteAtivoByDoc(String cpfCnpj) {
+        try {
+            if(!validaCPFouCNPJ(cpfCnpj)) {
+                throw new ValidationException("CPF/CNPJ deve ser válido!");
+            }
+            Optional<Cliente> cliente = clienteDAO.getClienteAtivoByCpfCnpj(cpfCnpj);
+            return cliente.orElseThrow(() -> {
+                exibeJPanel("Cliente não encontrado!");
+                return new ClienteNotFoundException("Cliente not found!");
+            });
+        } catch (SQLException e) {
+            exibeJPanel("Não foi possível obter o cliente!");
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void inativarCliente(String cpfCnpj) {
+        try {
+            clienteDAO.inativaCliente(cpfCnpj);
+        } catch (SQLException e) {
+            exibeJPanel("Não foi possível inativar o cliente!");
             throw new RuntimeException("Error: " + e.getMessage(), e);
         }
     }

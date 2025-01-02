@@ -43,7 +43,7 @@ public class ProdutoServiceImpl implements ProdutoService {
     public void createProduto(RegisterProdutoRequest request) {
         verificaDadosParaPersistenciaDeProduto(request.descricao(), request.preco());
         try {
-            Produto produto = new Produto(-1L, request.descricao(), new BigDecimal(request.preco()));
+            Produto produto = new Produto(-1L, request.descricao(), new BigDecimal(request.preco()), request.ativo());
             produtoDAO.createProduto(produto);
         } catch (SQLException e) {
             exibeJPanel("Error: " + e.getMessage());
@@ -58,7 +58,8 @@ public class ProdutoServiceImpl implements ProdutoService {
             Produto produto = new Produto(
                     request.codigo(),
                     request.descricao(),
-                    new BigDecimal(request.preco())
+                    new BigDecimal(request.preco()),
+                    request.ativo()
             );
             produtoDAO.updateProduto(produto);
         } catch (SQLException e) {
@@ -91,6 +92,31 @@ public class ProdutoServiceImpl implements ProdutoService {
     public List<Produto> getProdutoByDescricao(String descricao) {
         try {
             return produtoDAO.findProdutoByDesc(descricao);
+        } catch (SQLException e) {
+            exibeJPanel("Error: " + e.getMessage());
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Produto getProdutoAtivoById(String codigo) {
+        try {
+            Long idProduto = Long.parseLong(codigo);
+            Optional<Produto> produto = produtoDAO.findProdutoAtivoById(idProduto);
+            return produto.orElseThrow(() -> {
+                exibeJPanel("Produto não encontrado!");
+                return new ProdutoNotFoundException();
+            });
+        } catch (SQLException e) {
+            exibeJPanel("Error: " + e.getMessage());
+            throw new RuntimeException("Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void inativarProduto(Long codigo) {
+        try {
+            produtoDAO.inativaProduto(codigo);
         } catch (SQLException e) {
             exibeJPanel("Error: " + e.getMessage());
             throw new RuntimeException("Error: " + e.getMessage(), e);

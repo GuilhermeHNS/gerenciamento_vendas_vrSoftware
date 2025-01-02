@@ -19,7 +19,8 @@ public class ProdutoDAOImpl implements ProdutoDAO {
         String sql = "SELECT";
         sql += "\n         produto_id AS ID,";
         sql += "\n         produto_descricao AS DESC,";
-        sql += "\n         produto_preco AS PRECO";
+        sql += "\n         produto_preco AS PRECO,";
+        sql += "\n         produto_ativo AS ATIVO";
         sql += "\n FROM produto";
         sql += "\n WHERE produto_id = ?";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -28,7 +29,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
                 if (!rs.next()) {
                     return Optional.empty();
                 }
-                return Optional.of(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO")));
+                return Optional.of(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO"), rs.getBoolean("ATIVO")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -40,13 +41,15 @@ public class ProdutoDAOImpl implements ProdutoDAO {
     public void createProduto(Produto produto) throws SQLException {
         String sql = "INSERT INTO produto(";
         sql += "\n         produto_descricao,";
-        sql += "\n         produto_preco";
+        sql += "\n         produto_preco,";
+        sql += "\n         produto_ativo";
         sql += "\n )";
-        sql += "\n VALUES (?, ?);";
+        sql += "\n VALUES (?, ?, ?);";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setString(1, produto.descricao());
             pstmt.setBigDecimal(2, produto.preco());
+            pstmt.setBoolean(3, produto.ativo());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -58,7 +61,8 @@ public class ProdutoDAOImpl implements ProdutoDAO {
     public void updateProduto(Produto produto) throws SQLException {
         String sql = "UPDATE produto";
         sql += "\n     SET produto_descricao= ?,";
-        sql += "\n         produto_preco= ?";
+        sql += "\n         produto_preco= ?,";
+        sql += "\n         produto_ativo = ?";
         sql += "\n WHERE produto_id = ?;";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -66,7 +70,8 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             try {
                 pstmt.setString(1, produto.descricao());
                 pstmt.setBigDecimal(2, produto.preco());
-                pstmt.setLong(3, produto.codigo());
+                pstmt.setBoolean(3, produto.ativo());
+                pstmt.setLong(4, produto.codigo());
                 pstmt.executeUpdate();
                 con.commit();
             } catch (Exception e) {
@@ -103,12 +108,13 @@ public class ProdutoDAOImpl implements ProdutoDAO {
         String sql = "SELECT";
         sql += "\n         produto_id AS ID,";
         sql += "\n         produto_descricao AS DESC,";
-        sql += "\n         produto_preco AS PRECO";
+        sql += "\n         produto_preco AS PRECO,";
+        sql += "\n         produto_ativo AS ATIVO";
         sql += "\n FROM produto;";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
             List<Produto> produtoList = new ArrayList<>();
             while (rs.next()) {
-                produtoList.add(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO")));
+                produtoList.add(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO"), rs.getBoolean("ATIVO")));
             }
             return produtoList;
         } catch (SQLException e) {
@@ -122,7 +128,8 @@ public class ProdutoDAOImpl implements ProdutoDAO {
         String sql = "SELECT";
         sql += "\n         produto_id AS ID,";
         sql += "\n         produto_descricao AS DESC,";
-        sql += "\n         produto_preco AS PRECO";
+        sql += "\n         produto_preco AS PRECO,";
+        sql += "\n         produto_ativo as ATIVO";
         sql += "\n FROM produto";
         sql += "\n WHERE UPPER(produto_descricao) like ?";
 
@@ -132,7 +139,7 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             pstmt.setString(1, "%" + desc.toUpperCase() + "%");
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    produtoList.add(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO")));
+                    produtoList.add(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO"), rs.getBoolean("ATIVO")));
                 }
             }
             return produtoList;
@@ -141,4 +148,48 @@ public class ProdutoDAOImpl implements ProdutoDAO {
             throw new SQLException("Não foi possível efetuar a busca dos produtos!");
         }
     }
+
+    @Override
+    public void inativaProduto(Long id) throws SQLException {
+        String sql = "UPDATE produto";
+        sql += "\n SET produto_ativo = FALSE";
+        sql += "\n WHERE produto_id = ?";
+        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
+            con.setAutoCommit(false);
+            try {
+                pstmt.setLong(1, id);
+                pstmt.executeUpdate();
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw new SQLException(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Não foi possível inativar o produto!");
+        }
+    }
+
+    @Override
+    public Optional<Produto> findProdutoAtivoById(Long id) throws SQLException {
+        String sql = "SELECT";
+        sql += "\n         produto_id AS ID,";
+        sql += "\n         produto_descricao AS DESC,";
+        sql += "\n         produto_preco AS PRECO,";
+        sql += "\n         produto_ativo AS ATIVO";
+        sql += "\n FROM produto";
+        sql += "\n WHERE produto_id = ?";
+        sql += "\n AND produto_ativo = TRUE";
+        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+                return Optional.of(new Produto(rs.getLong("ID"), rs.getString("DESC"), rs.getBigDecimal("PRECO"), rs.getBoolean("ATIVO")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Não foi possível efetuar a busca do produto!");
+        }    }
 }

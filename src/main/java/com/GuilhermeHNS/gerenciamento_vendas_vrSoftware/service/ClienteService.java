@@ -7,8 +7,16 @@ import java.util.List;
 
 public interface ClienteService {
     void createCliente(RegisterUpdateClienteRequest request);
+
     Cliente getClienteByDoc(String cpfCnpj);
+
     void updateCliente(RegisterUpdateClienteRequest request);
+
     void deleteCliente(String cpfCnpj);
+
     List<Cliente> getAllClientes();
+
+    Cliente getClienteAtivoByDoc(String cpfCnpj);
+
+    void inativarCliente(String cpfCnpj);
 }

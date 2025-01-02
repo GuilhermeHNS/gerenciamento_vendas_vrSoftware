@@ -21,9 +21,14 @@ public class ClienteController {
         return clienteService.getClienteByDoc(cpfCnpj);
     }
 
+    public Cliente consultaClienteAtivo(String cpfCnpj) {
+        return clienteService.getClienteAtivoByDoc(cpfCnpj);
+    }
+
     public List<Cliente> listaTodosOsClientes() {
         return clienteService.getAllClientes();
     }
+
     public void atualizaCliente(RegisterUpdateClienteRequest request) {
         clienteService.updateCliente(request);
     }
@@ -31,4 +36,9 @@ public class ClienteController {
     public void deleteCliente(String cpfCnpj) {
         clienteService.deleteCliente(cpfCnpj);
     }
+
+    public void inativarCliente(String cpfCnpj) {
+        clienteService.inativarCliente(cpfCnpj);
+    }
+
 }

@@ -37,4 +37,12 @@ public class ProdutoController {
     public List<Produto> listarProdutoPorDescricao(String desc) {
         return produtoService.getProdutoByDescricao(desc);
     }
+
+    public Produto consultaProdutoAtivo(String codigo) {
+        return produtoService.getProdutoAtivoById(codigo);
+    }
+
+    public void inativarProduto(Long codigo) {
+        produtoService.inativarProduto(codigo);
+    }
 }

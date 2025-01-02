@@ -63,7 +63,7 @@ public class VendasForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String cpfCnpj = cpfCnpjField.getText();
-                cliente = clienteController.consultaCliente(cpfCnpj);
+                cliente = clienteController.consultaClienteAtivo(cpfCnpj);
                 nomeField.setText(cliente.nome());
             }
         });
@@ -71,7 +71,7 @@ public class VendasForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String codProduto = codProdutoField.getText();
-                produto = produtoController.consultaProduto(codProduto);
+                produto = produtoController.consultaProdutoAtivo(codProduto);
                 descricaoField.setText(produto.descricao());
                 precoField.setText(produto.preco().toString());
             }

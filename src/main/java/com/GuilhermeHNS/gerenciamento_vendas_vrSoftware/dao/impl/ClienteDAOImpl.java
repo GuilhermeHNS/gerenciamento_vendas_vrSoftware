@@ -16,14 +16,16 @@ public class ClienteDAOImpl implements ClienteDAO {
         sql += "\n        cliente_name,";
         sql += "\n        cliente_cpfcnpj,";
         sql += "\n        cliente_limitecompra,";
-        sql += "\n        cliente_diafechamentofatura";
-        sql += "\n) values (?,?,?,?)";
+        sql += "\n        cliente_diafechamentofatura,";
+        sql += "\n        cliente_ativo";
+        sql += "\n) values (?,?,?,?,?)";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setString(1, cliente.nome());
             pstmt.setString(2, cliente.cpfCnpj());
             pstmt.setBigDecimal(3, cliente.limiteCredito());
             pstmt.setInt(4, cliente.diaFechamentoFatura());
+            pstmt.setBoolean(5, cliente.ativo());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -39,7 +41,8 @@ public class ClienteDAOImpl implements ClienteDAO {
         sql += "\n         cliente_name AS NAME,";
         sql += "\n         cliente_cpfcnpj AS CPFCNPJ,";
         sql += "\n         cliente_limitecompra AS LIMITECREDITO,";
-        sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA";
+        sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA,";
+        sql += "\n         cliente_ativo AS ATIVO";
         sql += "\n FROM cliente";
         sql += "\n WHERE cliente_cpfcnpj = ?";
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -53,7 +56,8 @@ public class ClienteDAOImpl implements ClienteDAO {
                         rs.getString("NAME"),
                         rs.getString("CPFCNPJ"),
                         rs.getBigDecimal("LIMITECREDITO"),
-                        rs.getInt("DIAFECHAMENTOFATURA"))
+                        rs.getInt("DIAFECHAMENTOFATURA"),
+                        rs.getBoolean("ATIVO"))
                 );
             }
         } catch (SQLException e) {
@@ -68,7 +72,8 @@ public class ClienteDAOImpl implements ClienteDAO {
         String sql = "UPDATE cliente";
         sql += "\n     SET cliente_name=?,";
         sql += "\n         cliente_limitecompra=?,";
-        sql += "\n         cliente_diafechamentofatura=?";
+        sql += "\n         cliente_diafechamentofatura=?,";
+        sql += "\n         cliente_ativo = ?";
         sql += "\n WHERE cliente_cpfcnpj = ?";
 
         try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
@@ -77,7 +82,8 @@ public class ClienteDAOImpl implements ClienteDAO {
                 pstmt.setString(1, cliente.nome());
                 pstmt.setBigDecimal(2, cliente.limiteCredito());
                 pstmt.setInt(3, cliente.diaFechamentoFatura());
-                pstmt.setString(4, cliente.cpfCnpj());
+                pstmt.setBoolean(4, cliente.ativo());
+                pstmt.setString(5, cliente.cpfCnpj());
                 pstmt.executeUpdate();
                 con.commit();
             } catch (Exception e) {
@@ -116,7 +122,8 @@ public class ClienteDAOImpl implements ClienteDAO {
         sql += "\n         cliente_name AS NAME,";
         sql += "\n         cliente_cpfcnpj AS CPFCNPJ,";
         sql += "\n         cliente_limitecompra AS LIMITECREDITO,";
-        sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA";
+        sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA,";
+        sql += "\n         cliente_ativo as ATIVO";
         sql += "\n FROM cliente";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql);
@@ -128,13 +135,68 @@ public class ClienteDAOImpl implements ClienteDAO {
                                 rs.getString("NAME"),
                                 rs.getString("CPFCNPJ"),
                                 rs.getBigDecimal("LIMITECREDITO"),
-                                rs.getInt("DIAFECHAMENTOFATURA"))
+                                rs.getInt("DIAFECHAMENTOFATURA"),
+                                rs.getBoolean("ATIVO"))
                 );
             }
             return clientesList;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Não foi possível buscar os clientes cadastrados!");
+        }
+    }
+
+    @Override
+    public void inativaCliente(String cpfCnpj) throws SQLException {
+        String sql = "UPDATE cliente";
+        sql += "\n SET cliente_ativo = FALSE";
+        sql += "\n WHERE cliente_cpfCnpj = ?";
+        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
+            con.setAutoCommit(false);
+            try {
+                pstmt.setString(1, cpfCnpj);
+                pstmt.executeUpdate();
+                con.commit();
+            } catch (Exception e) {
+                con.rollback();
+                throw new SQLException(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Não foi possível deletar o cadastro do cliente!");
+        }
+    }
+
+    @Override
+    public Optional<Cliente> getClienteAtivoByCpfCnpj(String cpfCnpj) throws SQLException {
+        String sql = "SELECT";
+        sql += "\n         cliente_id AS CODIGO,";
+        sql += "\n         cliente_name AS NAME,";
+        sql += "\n         cliente_cpfcnpj AS CPFCNPJ,";
+        sql += "\n         cliente_limitecompra AS LIMITECREDITO,";
+        sql += "\n         cliente_diafechamentofatura AS DIAFECHAMENTOFATURA,";
+        sql += "\n         cliente_ativo AS ATIVO";
+        sql += "\n FROM cliente";
+        sql += "\n WHERE cliente_cpfcnpj = ?";
+        sql += "\n AND cliente_ativo = TRUE";
+        try (Connection con = DatabaseConnection.getConnection(); PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setString(1, cpfCnpj);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+                return Optional.of(new Cliente(
+                        rs.getLong("CODIGO"),
+                        rs.getString("NAME"),
+                        rs.getString("CPFCNPJ"),
+                        rs.getBigDecimal("LIMITECREDITO"),
+                        rs.getInt("DIAFECHAMENTOFATURA"),
+                        rs.getBoolean("ATIVO"))
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Não foi possível buscar o cliente informado!");
         }
     }
 }

@@ -26,14 +26,14 @@ public class ProdutoServiceTest {
     private ProdutoService produtoService;
 
     @BeforeEach
-    private void setUp() {
+    public void setUp() {
         produtoDAO = Mockito.mock(ProdutoDAO.class);
         produtoService = new ProdutoServiceImpl(produtoDAO);
     }
 
     @Test
     public void deveRegistrarUmProdutoCorretamente() throws SQLException {
-        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "80");
+        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "80", true);
 
         Mockito.doNothing().when(produtoDAO).createProduto(Mockito.any(Produto.class));
 
@@ -44,7 +44,7 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveNegarRegistroSemDescricao() throws SQLException {
-        RegisterProdutoRequest request = new RegisterProdutoRequest("", "80");
+        RegisterProdutoRequest request = new RegisterProdutoRequest("", "80", true);
 
         ValidationException thrown = assertThrows(ValidationException.class, () -> produtoService.createProduto(request));
         assertEquals("A descrição do produto é obrigatória!", thrown.getMessage());
@@ -52,14 +52,14 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveNegarRegistroSemPreco() throws SQLException {
-        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "");
+        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "", true);
         ValidationException thrown = assertThrows(ValidationException.class, () -> produtoService.createProduto(request));
         assertEquals("O preço do produto não pode ser menor que 0!", thrown.getMessage());
     }
 
     @Test
     public void deveNegarRegistroComPrecoInvalido() throws SQLException {
-        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "abcd");
+        RegisterProdutoRequest request = new RegisterProdutoRequest("Bola de futebol", "abcd", true);
         ValidationException thrown = assertThrows(ValidationException.class, () -> produtoService.createProduto(request));
         assertEquals("O preço do produto não pode ser menor que 0!", thrown.getMessage());
     }
@@ -67,7 +67,7 @@ public class ProdutoServiceTest {
     @Test
     public void deveRetornarProdutoComIdExistente() throws SQLException {
         String codigoProduto = "1";
-        Produto produtoEsperado = new Produto(1L, "Bola de futebol", new BigDecimal(80));
+        Produto produtoEsperado = new Produto(1L, "Bola de futebol", new BigDecimal(80), true);
         Mockito.when(produtoDAO.findProdutoById(Long.parseLong(codigoProduto))).thenReturn(Optional.of(produtoEsperado));
         Produto produtoRetornado = produtoService.getProdutoById(codigoProduto);
         assertNotNull(produtoRetornado);
@@ -82,9 +82,9 @@ public class ProdutoServiceTest {
     @Test
     public void deveRetornarProdutosComDescricaoExistenteEParecidas() throws SQLException {
         String desc = "Bola";
-        Produto produto01 = new Produto(1L, "Bola de futebol", new BigDecimal(100));
-        Produto produto02 = new Produto(1L, "Bola de volei", new BigDecimal(80));
-        Produto produto03 = new Produto(1L, "Bola de basquete", new BigDecimal(95));
+        Produto produto01 = new Produto(1L, "Bola de futebol", new BigDecimal(100), true);
+        Produto produto02 = new Produto(1L, "Bola de volei", new BigDecimal(80), true);
+        Produto produto03 = new Produto(1L, "Bola de basquete", new BigDecimal(95), true);
         List<Produto> produtoListEsperado = Arrays.asList(produto01, produto02, produto03);
         Mockito.when(produtoDAO.findProdutoByDesc(desc)).thenReturn(produtoListEsperado);
 
@@ -105,9 +105,9 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveRetornarTodosOsProdutos() throws SQLException {
-        Produto produto01 = new Produto(1L, "Bola de futebol", new BigDecimal(100));
-        Produto produto02 = new Produto(1L, "Bola de volei", new BigDecimal(80));
-        Produto produto03 = new Produto(1L, "Bola de basquete", new BigDecimal(95));
+        Produto produto01 = new Produto(1L, "Bola de futebol", new BigDecimal(100), true);
+        Produto produto02 = new Produto(1L, "Bola de volei", new BigDecimal(80), true);
+        Produto produto03 = new Produto(1L, "Bola de basquete", new BigDecimal(95), true);
         List<Produto> produtoListEsperado = Arrays.asList(produto01, produto02, produto03);
         Mockito.when(produtoDAO.findAll()).thenReturn(produtoListEsperado);
 
@@ -128,7 +128,7 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveAtualizarProdutoComDadosValidos() throws SQLException {
-        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "Bola de Volei", "80.0");
+        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "Bola de Volei", "80.0", false);
         Mockito.doNothing().when(produtoDAO).updateProduto(Mockito.any(Produto.class));
         Assertions.assertDoesNotThrow(() -> produtoService.updateProduto(request));
         verify(produtoDAO, times(1)).updateProduto(Mockito.any(Produto.class));
@@ -136,7 +136,7 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoTentarAtualizarProdutoComDescricaoVazia() throws SQLException {
-        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "", "80.0");
+        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "", "80.0", false);
         ValidationException thrown = assertThrows(ValidationException.class, () -> produtoService.updateProduto(request));
         assertEquals("A descrição do produto é obrigatória!", thrown.getMessage());
 
@@ -144,7 +144,7 @@ public class ProdutoServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoTentarAtualizarProdutoComValorInvalido() throws SQLException {
-        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "Bola de futebol", "asd");
+        UpdateProdutoRequest request = new UpdateProdutoRequest(1L, "Bola de futebol", "asd", true);
         ValidationException thrown = assertThrows(ValidationException.class, () -> produtoService.updateProduto(request));
         assertEquals("O preço do produto não pode ser menor que 0!", thrown.getMessage());
     }
@@ -155,5 +155,13 @@ public class ProdutoServiceTest {
         Mockito.doNothing().when(produtoDAO).deleteProduto(idProduto);
         assertDoesNotThrow(() -> produtoService.deleteProduto(idProduto));
         verify(produtoDAO, times(1)).deleteProduto(idProduto);
+    }
+
+    @Test
+    public void deveInativarProduto() throws SQLException {
+        Long idProduto = 1L;
+        Mockito.doNothing().when(produtoDAO).inativaProduto(idProduto);
+        assertDoesNotThrow(() -> produtoService.inativarProduto(idProduto));
+        verify(produtoDAO, times(1)).inativaProduto(idProduto);
     }
 }

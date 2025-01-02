@@ -19,4 +19,8 @@ public interface ProdutoService {
 
     List<Produto> getProdutoByDescricao(String descricao);
 
+    Produto getProdutoAtivoById(String codigo);
+
+    void inativarProduto(Long codigo);
+
 }

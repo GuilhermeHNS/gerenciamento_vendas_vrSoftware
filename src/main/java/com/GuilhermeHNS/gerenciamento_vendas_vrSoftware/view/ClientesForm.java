@@ -7,7 +7,6 @@ import com.GuilhermeHNS.gerenciamento_vendas_vrSoftware.model.Cliente;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClientesForm extends JFrame {
@@ -32,6 +31,7 @@ public class ClientesForm extends JFrame {
     private JTable tableClientes;
     private JPanel consultaPanel;
     private JButton cancelarButton;
+    private JCheckBox ativoCheckBox;
 
     private final int INICIAL = 0;
     private final int EDITANDO = 1;
@@ -51,7 +51,8 @@ public class ClientesForm extends JFrame {
                         fieldName.getText(),
                         fieldCpfCnpj.getText(),
                         fieldValorCredito.getText(),
-                        fieldDiaFechamentoFatura.getText()
+                        fieldDiaFechamentoFatura.getText(),
+                        ativoCheckBox.isSelected()
                 );
                 clienteController.registerCliente(request);
                 limpaCampos();
@@ -116,6 +117,7 @@ public class ClientesForm extends JFrame {
                     fieldCpfCnpj.setEnabled(false);
                     fieldValorCredito.setText(cliente.limiteCredito().toString());
                     fieldDiaFechamentoFatura.setText(cliente.diaFechamentoFatura().toString());
+                    ativoCheckBox.setSelected(cliente.ativo());
                     ESTADO_ATUAL = EDITANDO;
                     tabbedCliente.setSelectedIndex(1);
                     habilitarBotoes();
@@ -136,7 +138,8 @@ public class ClientesForm extends JFrame {
                         fieldName.getText(),
                         fieldCpfCnpj.getText(),
                         fieldValorCredito.getText(),
-                        fieldDiaFechamentoFatura.getText()
+                        fieldDiaFechamentoFatura.getText(),
+                        ativoCheckBox.isSelected()
                 );
                 clienteController.atualizaCliente(request);
                 limpaCampos();
@@ -159,9 +162,9 @@ public class ClientesForm extends JFrame {
                 );
                 if (resposta == JOptionPane.YES_OPTION) {
                     String cpfCnpj = fieldCpfCnpj.getText();
-                    clienteController.deleteCliente(cpfCnpj);
-                    limpaCampos();
+                    clienteController.inativarCliente(cpfCnpj);
                     ESTADO_ATUAL = INICIAL;
+                    limpaCampos();
                     habilitarBotoes();
                     listaClientes();
                 }
@@ -191,6 +194,7 @@ public class ClientesForm extends JFrame {
                 fieldValorCredito.setEditable(false);
                 fieldDiaFechamentoFatura.setEditable(false);
                 fieldCpfCnpj.setEditable(false);
+                ativoCheckBox.setEnabled(false);
                 tabbedCliente.setSelectedIndex(0);
                 tableClientes.clearSelection();
                 break;
@@ -205,6 +209,7 @@ public class ClientesForm extends JFrame {
                 fieldDiaFechamentoFatura.setEditable(true);
                 fieldCpfCnpj.setEditable(true);
                 cancelarButton.setEnabled(true);
+                ativoCheckBox.setEnabled(true);
                 break;
             case NOVO:
                 novoButton.setEnabled(false);
@@ -217,6 +222,7 @@ public class ClientesForm extends JFrame {
                 fieldDiaFechamentoFatura.setEditable(true);
                 fieldCpfCnpj.setEditable(true);
                 cancelarButton.setEnabled(true);
+                ativoCheckBox.setEnabled(true);
                 break;
             default:
         }
@@ -233,6 +239,7 @@ public class ClientesForm extends JFrame {
                     cliente.cpfCnpj(),
                     cliente.limiteCredito(),
                     cliente.diaFechamentoFatura(),
+                    cliente.ativo() ? "Ativo" : "Inativo"
             });
         });
     }
@@ -241,7 +248,7 @@ public class ClientesForm extends JFrame {
         this.setContentPane(panelCliente);
         this.setSize(600, 600);
         setResizable(false);
-        String[] colunas = {"Nome", "CPF/CNPJ", "Limite de Crédito", "Dia de Fechamento"};
+        String[] colunas = {"Nome", "CPF/CNPJ", "Limite de Crédito", "Dia de Fechamento", "Status"};
         DefaultTableModel modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {

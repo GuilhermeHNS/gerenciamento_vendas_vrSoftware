@@ -16,4 +16,8 @@ public interface ClienteDAO {
     void deleteCliente(String cpfCnpj) throws SQLException;
 
     List<Cliente> getAllClientes() throws SQLException;
+
+    void inativaCliente(String cpfCnpj) throws SQLException;
+
+    Optional<Cliente> getClienteAtivoByCpfCnpj(String cpfCnpj) throws SQLException;
 }

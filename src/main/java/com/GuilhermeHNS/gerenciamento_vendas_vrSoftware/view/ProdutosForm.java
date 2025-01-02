@@ -25,6 +25,7 @@ public class ProdutosForm extends JFrame {
     private JTextField fieldDescricao;
     private JTextField fieldPreco;
     private JButton limparButton;
+    private JCheckBox ativoCheckBox;
     private final ProdutoController produtoController;
     private final int INICIAL = 0;
     private final int EDITANDO = 1;
@@ -62,7 +63,8 @@ public class ProdutosForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 RegisterProdutoRequest request = new RegisterProdutoRequest(
                         fieldDescricao.getText(),
-                        fieldPreco.getText()
+                        fieldPreco.getText(),
+                        ativoCheckBox.isSelected()
                 );
                 produtoController.salvarProduto(request);
                 JOptionPane.showMessageDialog(null, "Produto cadastrado com sucesso!");
@@ -88,10 +90,11 @@ public class ProdutosForm extends JFrame {
                 int selectedRow = tableProdutos.getSelectedRow();
                 if (selectedRow != -1) {
                     String codigo = tableProdutos.getValueAt(selectedRow, 0).toString();
-                    Produto produdo = produtoController.consultaProduto(codigo);
-                    idProdutoEditado = produdo.codigo();
-                    fieldDescricao.setText(produdo.descricao());
-                    fieldPreco.setText(produdo.preco().toString());
+                    Produto produto = produtoController.consultaProduto(codigo);
+                    idProdutoEditado = produto.codigo();
+                    fieldDescricao.setText(produto.descricao());
+                    fieldPreco.setText(produto.preco().toString());
+                    ativoCheckBox.setSelected(produto.ativo());
                     ESTADO_ATUAL = EDITANDO;
                     habilitarBotoes();
                     tabbedPane1.setSelectedIndex(1);
@@ -104,7 +107,8 @@ public class ProdutosForm extends JFrame {
                 UpdateProdutoRequest request = new UpdateProdutoRequest(
                         idProdutoEditado,
                         fieldDescricao.getText(),
-                        fieldPreco.getText()
+                        fieldPreco.getText(),
+                        ativoCheckBox.isSelected()
                 );
                 produtoController.atualizaProduto(request);
                 JOptionPane.showMessageDialog(null, "Produto atualizado com sucesso!");
@@ -126,7 +130,7 @@ public class ProdutosForm extends JFrame {
                 );
                 if (resposta == JOptionPane.YES_OPTION) {
                     limpaCampos();
-                    produtoController.deletarProduto(idProdutoEditado);
+                    produtoController.inativarProduto(idProdutoEditado);
                     ESTADO_ATUAL = INICIAL;
                     habilitarBotoes();
                     listarTodosProdutos();
@@ -153,7 +157,8 @@ public class ProdutosForm extends JFrame {
                                     dados.addRow(new Object[]{
                                             produto.codigo(),
                                             produto.descricao(),
-                                            produto.preco()
+                                            produto.preco(),
+                                            produto.ativo() ? "Ativo" : "Inativo"
                                     });
                                 });
                     }
@@ -166,7 +171,7 @@ public class ProdutosForm extends JFrame {
         this.setContentPane(painelProduto);
         this.setResizable(false);
         this.setSize(536, 457);
-        String[] colunas = {"Código", "Descrição", "Preço"};
+        String[] colunas = {"Código", "Descrição", "Preço", "Status"};
         DefaultTableModel modeloTabela = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -176,6 +181,7 @@ public class ProdutosForm extends JFrame {
         tableProdutos.setModel(modeloTabela);
         tableProdutos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         habilitarBotoes();
+        ativoCheckBox.setSelected(true);
     }
 
     private void habilitarBotoes() {
@@ -189,6 +195,7 @@ public class ProdutosForm extends JFrame {
                 cancelarButton.setEnabled(false);
                 fieldDescricao.setEditable(false);
                 fieldPreco.setEditable(false);
+                ativoCheckBox.setEnabled(false);
                 tabbedPane1.setSelectedIndex(0);
                 tableProdutos.clearSelection();
                 break;
@@ -202,6 +209,7 @@ public class ProdutosForm extends JFrame {
                 fieldDescricao.setEditable(true);
                 tabbedPane1.setSelectedIndex(1);
                 cancelarButton.setEnabled(true);
+                ativoCheckBox.setEnabled(true);
                 break;
             case NOVO:
                 novoButton.setEnabled(false);
@@ -213,6 +221,7 @@ public class ProdutosForm extends JFrame {
                 fieldPreco.setEditable(true);
                 tabbedPane1.setSelectedIndex(1);
                 cancelarButton.setEnabled(true);
+                ativoCheckBox.setEnabled(true);
                 break;
             default:
         }
@@ -233,7 +242,8 @@ public class ProdutosForm extends JFrame {
                     dados.addRow(new Object[]{
                             produto.codigo(),
                             produto.descricao(),
-                            produto.preco()
+                            produto.preco(),
+                            produto.ativo() ? "Ativo" : "Inativo"
                     });
                 });
     }
